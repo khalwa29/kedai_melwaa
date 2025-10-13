@@ -263,7 +263,7 @@ nav a:hover {
 </head>
 <body>
 
-  <!-- HEADER -->
+
 <!-- HEADER -->
 <header>
   <div class="header-container">
@@ -276,7 +276,8 @@ nav a:hover {
         <a href="#about">Tentang</a>
         <a href="#menu">Menu</a>
         <a href="#contact">Kontak</a>
-        <a href="#log-in">Log In</a>
+        <a href="<?= base_url('/login') ?>">Login Admin</a>
+        <a href="<?= base_url('/auth/loginAsUser') ?>" class="btn btn-success">Login User</a>
       </nav>
 
       <!-- HAMBURGER -->
@@ -294,13 +295,6 @@ nav a:hover {
     <h2>Selamat Datang di Kedai KhaMelicious</h2>
     <p>"Nikmati sajian makanan dan minuman istimewa di Kedai KhaMelicious."</p>
   </div>
-  
-  <button type="submit" class="btn-beli" style="padding:15px 30px; font-size:18px; background:#e74c3c; color:#fff; border:none; border-radius:8px; cursor:pointer;">
-            Order Sekarang
-        </button>
-  
-
-
 </section>
 
 

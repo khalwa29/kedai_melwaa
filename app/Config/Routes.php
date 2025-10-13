@@ -28,8 +28,20 @@ $routes->setAutoRoute(true);
  */
 
 // We get a performance increase by specifying the default route.
+$routes->get('login', 'Login::index');
 $routes->get('/', 'Home::index');
 $routes->get('Admin', 'Admin::index');
+
+// Halaman login
+$routes->get('/', 'Auth::index');
+$routes->get('/auth', 'Auth::index');
+$routes->post('/auth/login', 'Auth::login');
+$routes->get('/auth/loginAsUser', 'Auth::loginAsUser');
+$routes->get('/logout', 'Auth::logout');
+
+// Halaman setelah login
+$routes->get('/home', 'Home::index');
+$routes->get('/admin/dashboard', 'Admin::index');
 
 
 // Contoh rute untuk halaman "Sekolah"
