@@ -34,10 +34,12 @@ $routes->get('Admin', 'Admin::index');
 
 // Halaman login
 $routes->get('/', 'Auth::index');
-$routes->get('/auth', 'Auth::index');
-$routes->post('/auth/login', 'Auth::login');
-$routes->get('/auth/loginAsUser', 'Auth::loginAsUser');
-$routes->get('/logout', 'Auth::logout');
+$routes->get('auth/login', 'Auth::login');
+$routes->post('auth/processLogin', 'Auth::processLogin');
+$routes->get('auth/dashboardAdmin', 'Auth::dashboardAdmin');
+$routes->get('auth/dashboardUser', 'Auth::dashboardUser');
+$routes->get('auth/loginAsUser', 'Auth::loginAsUser');
+$routes->get('auth/logout', 'Auth::logout');
 
 // Halaman setelah login
 $routes->get('/home', 'Home::index');

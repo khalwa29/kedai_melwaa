@@ -76,6 +76,22 @@ class Auth extends BaseController
         return view('v_dashboard_user');
     }
 
+    public function loginAsUser()
+{
+    $session = session();
+
+    // Login otomatis sebagai user biasa (tanpa form)
+    $session->set([
+        'user_id'   => 2,
+        'username'  => 'demo_user',
+        'role'      => 'user',
+        'logged_in' => true
+    ]);
+
+    return redirect()->to(base_url('auth/dashboardUser'));
+}
+
+
     public function logout()
     {
         session()->destroy();
