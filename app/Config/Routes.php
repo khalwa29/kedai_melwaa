@@ -27,13 +27,25 @@ $routes->setAutoRoute(true);
  * --------------------------------------------------------------------
  */
 
-// We get a performance increase by specifying the default route.
-$routes->get('login', 'Login::index');
+
+// Halaman utama
 $routes->get('/', 'Home::index');
-$routes->get('Admin', 'Admin::index');
 
 // Halaman login
-$routes->get('/', 'Auth::index');
+$routes->get('login', 'Auth::index');
+$routes->post('auth/processLogin', 'Auth::processLogin');
+
+// Route default: langsung ke halaman login
+$routes->get('/', 'Login::index');      // <-- tampilkan halaman login saat buka root
+$routes->get('login', 'Login::index');  // <-- route tambahan kalau user ketik /login
+
+// Route untuk halaman utama dan admin
+$routes->get('home', 'Home::index');
+$routes->get('admin', 'Admin::index');
+
+// -----------------------------
+// Halaman login dan autentikasi
+// -----------------------------
 $routes->get('auth/login', 'Auth::login');
 $routes->post('auth/processLogin', 'Auth::processLogin');
 $routes->get('auth/dashboardAdmin', 'Auth::dashboardAdmin');
@@ -41,9 +53,11 @@ $routes->get('auth/dashboardUser', 'Auth::dashboardUser');
 $routes->get('auth/loginAsUser', 'Auth::loginAsUser');
 $routes->get('auth/logout', 'Auth::logout');
 
+// -----------------------------
 // Halaman setelah login
-$routes->get('/home', 'Home::index');
-$routes->get('/admin/dashboard', 'Admin::index');
+// -----------------------------
+$routes->get('home', 'Home::index');
+$routes->get('admin/dashboard', 'Admin::index');
 
 
 // Contoh rute untuk halaman "Sekolah"
