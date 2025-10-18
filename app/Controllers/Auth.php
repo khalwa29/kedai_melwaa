@@ -9,12 +9,15 @@ class Auth extends BaseController
 {
     public function index()
     {
-        return view('v_front_end'); // halaman depan (umum)
+        return view('v_front_end'); // halaman utama (punya tombol login admin & user)
     }
 
+    // ===============================
+    // LOGIN ADMIN
+    // ===============================
     public function login()
     {
-        return view('v_login'); // form login
+        return view('v_login'); // form login admin
     }
 
     public function processLogin()
@@ -25,73 +28,76 @@ class Auth extends BaseController
         $username = $this->request->getPost('username');
         $password = $this->request->getPost('password');
 
-        // Cek user berdasarkan username
-        $user = $model->where('username', $username)->first();
+        // Cek user di tabel tb_user (username / email)
+        $user = $model
+            ->groupStart()
+            ->where('username', $username)
+            ->orWhere('email', $username)
+            ->groupEnd()
+            ->first();
 
         if ($user) {
-            if (password_verify($password, $user['password'])) {
-                // Set session login
+            if ($password === $user['password']) {
+                // Set session login admin
                 $session->set([
                     'user_id'   => $user['id'],
                     'username'  => $user['username'],
-                    'role'      => $user['role'], // contoh: admin atau user
+                    'email'     => $user['email'],
                     'logged_in' => true
                 ]);
 
-                // Arahkan sesuai role
-                if ($user['role'] == 'admin') {
-                    return redirect()->to(base_url('auth/dashboardAdmin'));
-                } else {
-                    return redirect()->to(base_url('auth/dashboardUser'));
-                }
+                // Arahkan ke dashboard admin
+                return redirect()->to(base_url('auth/dashboardAdmin'));
             } else {
                 $session->setFlashdata('error', 'Password salah.');
                 return redirect()->back();
             }
         } else {
-            $session->setFlashdata('error', 'Username tidak ditemukan.');
+            $session->setFlashdata('error', 'Username atau email tidak ditemukan.');
             return redirect()->back();
         }
     }
 
     public function dashboardAdmin()
     {
-        if (session()->get('role') != 'admin') {
+        if (!session()->get('logged_in')) {
             return redirect()->to(base_url('auth/login'));
         }
 
-        // Muat layout backend + konten dashboard
-        return view('v_back_end', [
-            'page' => 'v_dashboard_admin'
+        return view('v_dashboard_admin');
+    }
+
+    // ===============================
+    // LOGIN USER (tanpa form)
+    // ===============================
+    public function loginAsUser()
+    {
+        $session = session();
+
+        // Langsung buat sesi user tanpa perlu input login
+        $session->set([
+            'user_id'   => 2,
+            'username'  => 'user_demo',
+            'email'     => 'user@example.com',
+            'logged_in' => true
         ]);
+
+        // Arahkan ke dashboard user
+        return redirect()->to(base_url('auth/dashboardUser'));
     }
 
     public function dashboardUser()
     {
-        if (session()->get('role') != 'user') {
-            return redirect()->to(base_url('auth/login'));
+        if (!session()->get('logged_in')) {
+            return redirect()->to(base_url('auth/loginAsUser'));
         }
 
-        // Bisa diarahkan ke layout berbeda, atau langsung ke dashboard user
         return view('v_dashboard_user');
     }
 
-    public function loginAsUser()
-{
-    $session = session();
-
-    // Login otomatis sebagai user biasa (tanpa form)
-    $session->set([
-        'user_id'   => 2,
-        'username'  => 'demo_user',
-        'role'      => 'user',
-        'logged_in' => true
-    ]);
-
-    return redirect()->to(base_url('auth/dashboardUser'));
-}
-
-
+    // ===============================
+    // LOGOUT
+    // ===============================
     public function logout()
     {
         session()->destroy();

@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class UserModel extends Model
 {
-    protected $table = 'user';
+    protected $table = 'tb_user';
     protected $primaryKey = 'id';
-    protected $allowedFields = ['username', 'password', 'role'];
+    protected $allowedFields = ['username', 'email', 'password'];
 }

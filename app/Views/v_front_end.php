@@ -276,8 +276,8 @@ nav a:hover {
         <a href="#about">Tentang</a>
         <a href="#menu">Menu</a>
         <a href="#contact">Kontak</a>
-        <a href="<?= base_url('/login') ?>">Login Admin</a>
-        <a href="<?= base_url('/auth/loginAsUser') ?>" class="btn btn-success">Login User</a>
+        <a href="<?= base_url('auth/login') ?>" class="btn btn-primary">Login Admin</a>
+        <a href="<?= base_url('auth/loginAsUser') ?>" class="btn btn-success">Login User</a>
       </nav>
 
       <!-- HAMBURGER -->
@@ -301,7 +301,8 @@ nav a:hover {
   <!-- SECTION ABOUT -->
   <section id="about">
     <h2 style="text-align:center;">Tentang Kami</h2>
-    <img src="img/melwa (1).png" alt="Foto Kedai KhaMelicious" class="foto-tentang">
+    <img src="<?= base_url('img/melwa.png') ?>" alt="Foto Kedai KhaMelicious" class="foto-tentang">
+
     <h3>Kenapa memilih Kedai KhaMelicious???</h3>
           <p>
             Kedai KhaMelicious hadir untuk kamu yang ingin lebih dari sekadar
