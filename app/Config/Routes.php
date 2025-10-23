@@ -53,6 +53,14 @@ $routes->get('auth/dashboardUser', 'Auth::dashboardUser');
 $routes->get('auth/loginAsUser', 'Auth::loginAsUser');
 $routes->get('auth/logout', 'Auth::logout');
 
+$routes->get('user/dashboard', 'User::dashboard');
+
+// Menu
+$routes->get('menu', 'Menu::index');
+
+// Order / Keranjang
+$routes->get('order', 'Order::index');
+
 // -----------------------------
 // Halaman setelah login
 // -----------------------------

@@ -6,10 +6,17 @@ class User extends BaseController
 {
     public function dashboard()
     {
-        if (session()->get('role') !== 'user') {
-            return redirect()->to('/');
+        $session = session();
+
+        // Jika belum ada session guest/user, set otomatis
+        if (!$session->get('isLoggedIn')) {
+            $session->set([
+                'username' => 'Tamu',
+                'role'     => 'user',
+                'isLoggedIn' => true
+            ]);
         }
 
-        return view('wilayah/v_front_end'); // tampilan user
+        return view('user/dashboard'); // file view: app/Views/user/dashboard.php
     }
 }
