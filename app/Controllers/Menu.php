@@ -1,16 +1,17 @@
 <?php
-
 namespace App\Controllers;
 
-use App\Models\MenuModel;
-use CodeIgniter\Controller;
-
-class Menu extends Controller
+class Menu extends BaseController
 {
     public function index()
     {
-        $menuModel = new MenuModel();
-        $data['menu'] = $menuModel->findAll();
-        return view('menu/index', $data);
+        // jika ingin auto-login user, jangan redirect ke login
+        $minuman = $this->menuModel->getMinuman();
+        $makanan = $this->menuModel->getMakanan();
+
+        return view('menu/v_menu', [
+            'minuman' => $minuman,
+            'makanan' => $makanan
+        ]);
     }
 }

@@ -31,6 +31,7 @@ $routes->setAutoRoute(true);
 // Halaman utama
 $routes->get('/', 'Home::index');
 
+
 // Halaman login
 $routes->get('login', 'Auth::index');
 $routes->post('auth/processLogin', 'Auth::processLogin');
@@ -55,11 +56,10 @@ $routes->get('auth/logout', 'Auth::logout');
 
 $routes->get('user/dashboard', 'User::dashboard');
 
-// Menu
-$routes->get('menu', 'Menu::index');
-
-// Order / Keranjang
-$routes->get('order', 'Order::index');
+$routes->get('menu', 'Menu::index'); 
+$routes->get('order', 'Order::index'); 
+$routes->get('statistik', 'Statistik::index'); 
+$routes->get('auth/logout', 'Auth::logout'); 
 
 // -----------------------------
 // Halaman setelah login
