@@ -2,14 +2,15 @@
 
 namespace App\Controllers;
 
-use App\Models\MenuModel; // kalau pakai model untuk data menu
+use App\Models\MenuModel;
+use CodeIgniter\Controller;
 
-class Menu extends BaseController
+class Menu extends Controller
 {
     public function index()
     {
-        $model = new MenuModel();
-        $data['menus'] = $model->findAll(); // ambil semua data menu
-        return view('menu/v_menu', $data); // panggil view
+        $menuModel = new MenuModel();
+        $data['menu'] = $menuModel->findAll();
+        return view('menu/index', $data);
     }
 }

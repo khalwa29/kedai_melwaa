@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Dashboard Admin - Kedai KhaMelicious</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<meta charset="UTF-8">
+<title>Dashboard Admin - Kedai KhaMelicious</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body class="bg-light">
 
@@ -22,33 +22,33 @@
     <p>Anda login sebagai <strong>Admin</strong>.</p>
   </div>
 
-  <div class="row">
+  <div class="row g-4">
     <div class="col-md-4">
-      <div class="card shadow-sm">
-        <div class="card-body text-center">
-          <h5>Kelola Menu</h5>
-          <p>Tambah, ubah, atau hapus data menu Kedai.</p>
+      <div class="card shadow-sm h-100 text-center">
+        <div class="card-body">
+          <h5 class="card-title">Kelola Menu</h5>
+          <p class="card-text">Tambah, ubah, atau hapus data menu Kedai.</p>
           <a href="<?= base_url('menu') ?>" class="btn btn-primary btn-sm">Buka Menu</a>
         </div>
       </div>
     </div>
 
     <div class="col-md-4">
-      <div class="card shadow-sm">
-        <div class="card-body text-center">
-          <h5>Kelola Order</h5>
-          <p>Lihat pesanan pelanggan dan cetak struk.</p>
+      <div class="card shadow-sm h-100 text-center">
+        <div class="card-body">
+          <h5 class="card-title">Kelola Order</h5>
+          <p class="card-text">Lihat pesanan pelanggan dan cetak struk.</p>
           <a href="<?= base_url('order') ?>" class="btn btn-primary btn-sm">Lihat Order</a>
         </div>
       </div>
     </div>
 
     <div class="col-md-4">
-      <div class="card shadow-sm">
-        <div class="card-body text-center">
-          <h5>Statistik Penjualan</h5>
-          <p>Analisis transaksi harian dan mingguan.</p>
-          <a href="#" class="btn btn-primary btn-sm">Lihat Statistik</a>
+      <div class="card shadow-sm h-100 text-center">
+        <div class="card-body">
+          <h5 class="card-title">Statistik Penjualan</h5>
+          <p class="card-text">Analisis transaksi harian dan mingguan.</p>
+          <a href="<?= base_url('statistik') ?>" class="btn btn-primary btn-sm">Lihat Statistik</a>
         </div>
       </div>
     </div>

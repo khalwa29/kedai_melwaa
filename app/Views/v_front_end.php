@@ -341,27 +341,29 @@ nav a:hover {
   <div class="menu-grid">
   <?php foreach ($minuman as $m): ?>
     <div class="menu-card">
-      <img src="<?= base_url('img/menu/'.$m->foto) ?>"
-           alt="<?= esc($m->menu) ?>"
-           class="menu-card-img"
-           loading="lazy">
-      <h3 class="menu-card-title">- <?= esc($m->menu) ?> -</h3>
-      <p class="menu-card-price">Rp.<?= number_format($m->harga,0,',','.') ?></p>
+       <img src="<?= base_url('img/menu/'.$m['foto']) ?>" 
+            alt="<?= esc($m['menu']) ?>"
+            class="menu-card-img"
+            loading="lazy">
+      <h3 class="menu-card-title">- <?= esc($m['menu']) ?> -</h3>
+      <p class="menu-card-price">Rp.<?= number_format($m['harga'],0,',','.') ?></p>
     </div>
-  <?php endforeach; ?>
+<?php endforeach; ?>
+
 </div>
 
 <div class="menu-grid">
   <?php foreach ($makanan as $m): ?>
     <div class="menu-card">
-      <img src="<?= base_url('img/menu/'.$m->foto) ?>"
-           alt="<?= esc($m->menu) ?>"
+      <img src="<?= base_url('img/menu/'.$m['foto']) ?>"
+           alt="<?= esc($m['menu']) ?>"
            class="menu-card-img"
            loading="lazy">
-      <h3 class="menu-card-title">- <?= esc($m->menu) ?> -</h3>
-      <p class="menu-card-price">Rp.<?= number_format($m->harga,0,',','.') ?></p>
+      <h3 class="menu-card-title">- <?= esc($m['menu']) ?> -</h3>
+      <p class="menu-card-price">Rp.<?= number_format($m['harga'],0,',','.') ?></p>
     </div>
-  <?php endforeach; ?>
+<?php endforeach; ?>
+
 </div>
 
 
