@@ -1,3 +1,0 @@
-#ignore writable folder
-writable/*
-!writable/.htaccess
