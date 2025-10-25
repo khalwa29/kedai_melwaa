@@ -31,7 +31,7 @@ $menus = $menu_result->fetch_all(MYSQLI_ASSOC);
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>⚙️ Pengaturan Menu - Kasir Khawalicious</title>
+<title>⚙️ Pengaturan Menu - Kasir Melwaa</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
@@ -103,10 +103,10 @@ footer {
 
 <header>
     <div>
-        <h1>⚙️ Kasir Khawalicious</h1>
+        <h1>⚙️ Kasir Melwaa </h1>
         <span>Halo, <?= htmlspecialchars($_SESSION['username']) ?> — Atur menu dashboardmu</span>
     </div>
-    <a href="dashboard.php" style="text-decoration:none; padding:8px 12px; background:#4CAF50; color:white; border-radius:5px; font-weight:600;">🏠 Dashboard</a>
+    <a href="dashboard_admin.php" style="text-decoration:none; padding:8px 12px; background:#4CAF50; color:white; border-radius:5px; font-weight:600;">🏠 Dashboard</a>
 </header>
 
 <div class="container">
@@ -129,7 +129,7 @@ footer {
 </div>
 
 <footer>
-    🍜🥤🍪 Kasir Khawalicious — “Belanja Mudah, Untung Setiap Hari!” 💕
+    🍜🥤🍪 Kasir Melwaa — “Belanja Mudah, Untung Setiap Hari!” 💕
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

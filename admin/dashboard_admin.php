@@ -222,16 +222,6 @@ $username = $_SESSION["username"];
   <a href="pengaturan.php">Edit</a>
 </div>
 <?php endif; ?>
-
-<?php if(isset($menu_status['Bantuan']) && $menu_status['Bantuan']): ?>
-<div class="card">
-  <div class="icon">📞</div>
-  <h3>Bantuan</h3>
-  <p>Butuh bantuan? Hubungi admin atau baca panduan.</p>
-  <a href="bantuan.php">Hubungi</a>
-</div>
-<?php endif; ?>
-
 </div>
 
 

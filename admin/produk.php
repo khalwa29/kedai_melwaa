@@ -38,7 +38,7 @@ if (isset($_GET['hapus'])) {
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Data Produk | Kasir Khawalicious</title>
+<title>Data Produk | Kasir Melwaa</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 body {
@@ -138,10 +138,10 @@ footer {
 <body>
 <header>
   <div>
-    <h1>Kasir Khawalicious 🍜🥤🍪</h1>
+    <h1>Kasir Melwaa 🍜🥤🍪</h1>
     <span>Hai, <?= htmlspecialchars($username) ?> — kelola produkmu di sini 💅</span>
   </div>
-  <a href="dashboard.php">🏠 Dashboard</a>
+  <a href="dashboard_admin.php">🏠 Dashboard</a>
 </header>
 
 <div class="container">
@@ -200,7 +200,7 @@ footer {
 </div>
 
 <footer>
-  🍜🥤🍪 Kasir Khawalicious — “Belanja Mudah, Untung Setiap Hari!” 💕
+  🍜🥤🍪 Kasir Melwaa — “Belanja Mudah, Untung Setiap Hari!” 💕
 </footer>
 </body>
 </html>
