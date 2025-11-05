@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'];
 
     // Ambil data user berdasarkan email
-    $stmt = $conn->prepare("SELECT id, username, email, password FROM users WHERE email = ?");
+    $stmt = $conn->prepare("SELECT id, username, email, password, role FROM users WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -23,15 +23,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Verifikasi password menggunakan hash
         if (password_verify($password, $user['password'])) {
-            // Set session dan redirect ke dashboard
+            // Set session
             $_SESSION['user_id']  = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['email']    = $user['email'];
+            $_SESSION['role']     = $user['role']; // simpan role di session
 
-            echo "<script>
-                    alert('🎀 Selamat datang kembali, " . addslashes($user['username']) . " 💕');
-                    window.location='dashboard.php';
-                  </script>";
+            // Tentukan halaman tujuan berdasarkan role
+            if ($user['role'] === 'admin') {
+                echo "<script>
+                        alert('👑 Selamat datang Admin, " . addslashes($user['username']) . "!');
+                        window.location='dashboard_admin.php';
+                      </script>";
+            } else {
+                echo "<script>
+                        alert('🎀 Selamat datang kembali, " . addslashes($user['username']) . " 💕');
+                        window.location='dashboard_user.php';
+                      </script>";
+            }
             exit;
         } else {
             echo "<script>alert('😿 Password salah, coba lagi ya~');</script>";
@@ -44,7 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 $conn->close();
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>

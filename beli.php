@@ -5,9 +5,14 @@ if ($koneksi->connect_error) {
     die("Koneksi gagal: " . $koneksi->connect_error);
 }
 
-// Ambil data produk dari tabel tb_produk
-$query = "SELECT * FROM tb_produk ORDER BY kategori, nama_produk ASC";
-$result = $koneksi->query($query);
+// Ambil semua data produk
+$result = $koneksi->query("SELECT * FROM tb_produk ORDER BY kategori, nama_produk ASC");
+
+// Simpan data produk ke array untuk JS
+$produk_array = [];
+while ($row = $result->fetch_assoc()) {
+    $produk_array[] = $row;
+}
 ?>
 
 <!DOCTYPE html>
@@ -15,139 +20,101 @@ $result = $koneksi->query($query);
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Beli Menu - Kedai Melwaa 💕</title>
+<title>Form Pesanan Multi Menu - Kedai Melwaa 💕</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <style>
-/* ====== SEMUA CSS ORIGINAL DIPERTAHANKAN ====== */
-body {
-    font-family: 'Poppins', sans-serif;
-    background: #fff9fc;
-    margin: 0;
-    padding: 20px;
-}
-h1 {
-    text-align: center;
-    color: #ff4b9d;
-    margin-bottom: 10px;
-}
-p.subtitle {
-    text-align: center;
-    color: #666;
-    margin-bottom: 30px;
-}
-.container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-}
-.card {
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    overflow: hidden;
-    transition: transform 0.2s ease-in-out;
-}
-.card:hover {
-    transform: scale(1.03);
-}
-.card img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-}
-.card-body {
-    padding: 15px;
-    text-align: center;
-}
-.card-body h3 {
-    margin: 0;
-    color: #333;
-}
-.card-body p {
-    color: #666;
-    margin: 5px 0 10px;
-}
-button {
-    background: linear-gradient(90deg, #ff69b4, #ff85c1);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 8px 15px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-}
-button:hover {
-    background: linear-gradient(90deg, #ff85c1, #ffa3d1);
-}
-input[type="number"] {
-    width: 60px;
-    text-align: center;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    padding: 4px;
-    margin-right: 8px;
-}
-.kategori {
-    text-transform: capitalize;
-    font-size: 13px;
-    color: #999;
-}
-.success {
-    text-align: center;
-    background: #e0ffe9;
-    color: #2d7a46;
-    padding: 10px 15px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    width: 60%;
-    margin-left: auto;
-    margin-right: auto;
-}
-.back-btn {
-    display: block;
-    text-align: center;
-    margin-top: 30px;
-    text-decoration: none;
-    background: #ff69b4;
-    color: #fff;
-    padding: 10px 25px;
-    border-radius: 10px;
-    font-weight: 600;
-}
-.back-btn:hover {
-    background: #ff85c1;
-}
+body { font-family: 'Poppins', sans-serif; background: #fff9fc; margin: 0; padding: 20px; }
+h1 { text-align: center; color: #ff4b9d; margin-bottom: 20px; }
+form { max-width: 600px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);}
+label { display: block; margin-top: 15px; font-weight: 600; }
+input, select, textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-top: 5px; box-sizing: border-box; }
+button { margin-top: 20px; width: 100%; padding: 10px; background: linear-gradient(90deg, #ff69b4, #ff85c1); color: #fff; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
+button:hover { background: linear-gradient(90deg, #ff85c1, #ffa3d1); }
+.back-btn { display: block; text-align: center; margin: 20px auto; text-decoration: none; background: #00bcd4; color: #fff; padding: 10px 25px; border-radius: 10px; font-weight: 600; }
+.back-btn:hover { background: #0097a7; }
+.order-item { border: 1px solid #eee; padding: 15px; border-radius: 10px; margin-top: 15px; position: relative; }
+.remove-btn { position: absolute; top: 10px; right: 10px; background: #f44336; color: #fff; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer; }
+.remove-btn:hover { background: #d32f2f; }
 </style>
 </head>
 <body>
 
-<h1>🍜 Daftar Menu Kedai Melwaa</h1>
-<p class="subtitle">Silakan pilih menu yang ingin dibeli 💕</p>
+<h1>📝 Form Pesanan Multi Menu Kedai Melwaa</h1>
 
-<?php if (isset($_GET['success'])): ?>
-    <div class="success"><?= htmlspecialchars($_GET['success']) ?></div>
-<?php endif; ?>
+<form action="proses_beli.php" method="POST" id="order-form">
+    <label>Nama Pemesan</label>
+    <input type="text" name="nama" required placeholder="Masukkan nama Anda">
 
-<div class="container">
-<?php while($row = $result->fetch_assoc()): ?>
-    <div class="card">
-        <img src="uploads/<?= htmlspecialchars($row['foto']) ?>" alt="<?= htmlspecialchars($row['nama_produk']) ?>">
-        <div class="card-body">
-            <h3><?= htmlspecialchars($row['nama_produk']) ?></h3>
-            <p class="kategori"><?= htmlspecialchars($row['kategori']) ?></p>
-            <p><b>Rp <?= number_format($row['harga_jual'], 0, ',', '.') ?></b></p>
-            <form action="proses_beli.php" method="POST">
-                <input type="hidden" name="id_produk" value="<?= $row['id_produk'] ?>">
-                <input type="number" name="qty" min="1" value="1">
-                <button type="submit">Tambah ke Keranjang 🛒</button>
-            </form>
-        </div>
+    <div id="order-items">
+        <!-- Baris menu akan ditambahkan di sini -->
     </div>
-<?php endwhile; ?>
-</div>
+
+    <button type="button" onclick="addMenuItem()">➕ Tambah Menu</button>
+    <button type="submit">Pesan Sekarang 🛒</button>
+</form>
 
 <a href="dashboard_user.php" class="back-btn">⬅ Kembali ke Dashboard</a>
+
+<script>
+// Data produk dari PHP
+const produkArray = <?php echo json_encode($produk_array); ?>;
+let itemCount = 0;
+
+function addMenuItem() {
+    itemCount++;
+    const container = document.getElementById('order-items');
+    const div = document.createElement('div');
+    div.className = 'order-item';
+    div.id = 'item-' + itemCount;
+
+    let options = '<option value="">-- Pilih Menu --</option>';
+    produkArray.forEach(p => {
+        options += `<option value="${p.id_produk}" data-kategori="${p.kategori}" data-stok="${p.stok}">${p.nama_produk} (Rp ${p.harga_jual.toLocaleString('id-ID')})</option>`;
+    });
+
+    div.innerHTML = `
+        <button type="button" class="remove-btn" onclick="removeItem(${itemCount})">✖</button>
+        <label>Menu</label>
+        <select name="id_produk[]" onchange="updateKategori(this)" required>${options}</select>
+        <label>Kategori</label>
+        <input type="text" name="kategori[]" readonly placeholder="Kategori otomatis">
+        <label>Jumlah</label>
+        <select name="qty[]" required>
+            <option value="1">1</option>
+        </select>
+        <label>Catatan</label>
+        <textarea name="catatan[]" rows="2" placeholder="Misal: kurang pedas, tambah es..."></textarea>
+    `;
+
+    container.appendChild(div);
+}
+
+function removeItem(id) {
+    const el = document.getElementById('item-' + id);
+    el.remove();
+}
+
+function updateKategori(selectElem) {
+    const selectedOption = selectElem.options[selectElem.selectedIndex];
+    const kategori = selectedOption.getAttribute('data-kategori');
+    const stok = parseInt(selectedOption.getAttribute('data-stok')) || 1;
+
+    const parent = selectElem.parentElement;
+    parent.querySelector('input[name="kategori[]"]').value = kategori;
+
+    const qtySelect = parent.querySelector('select[name="qty[]"]');
+    qtySelect.innerHTML = '';
+    for (let i = 1; i <= stok; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = i;
+        qtySelect.appendChild(opt);
+    }
+}
+
+// Tambahkan baris pertama otomatis
+addMenuItem();
+</script>
 
 </body>
 </html>

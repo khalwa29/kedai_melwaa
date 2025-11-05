@@ -2,7 +2,7 @@
 require __DIR__ . '/dompdf/autoload.inc.php';
 use Dompdf\Dompdf;
 
-$koneksi = new mysqli("localhost", "root", "", "db_chatgpt");
+$koneksi = new mysqli("localhost", "root", "", "db_kasir");
 
 $tgl_awal  = $_GET['tgl_awal'] ?? '';
 $tgl_akhir = $_GET['tgl_akhir'] ?? '';

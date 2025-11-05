@@ -1,36 +1,86 @@
 <?php
-session_start();
-if (!isset($_SESSION["email"])) {
-    header("Location: login.php");
-    exit;
+include 'koneksi.php';
+
+// === TAMBAH PRODUK ===
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
+    $kode_produk = $_POST['kode_produk'];
+    $nama_produk = $_POST['nama_produk'];
+    $kategori    = $_POST['kategori'];
+    $harga_beli  = $_POST['harga_beli'];
+    $harga_jual  = $_POST['harga_jual'];
+    $stok        = $_POST['stok'];
+    $satuan      = $_POST['satuan'];
+
+    // Upload foto (jika ada)
+    $foto = null;
+    if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
+        $target_dir = "uploads/";
+        if (!is_dir($target_dir)) mkdir($target_dir);
+        $nama_file = time() . "_" . basename($_FILES["foto"]["name"]);
+        $target_file = $target_dir . $nama_file;
+        move_uploaded_file($_FILES["foto"]["tmp_name"], $target_file);
+        $foto = $nama_file;
+    }
+
+    // Simpan ke tb_produk
+    $stmt = $conn->prepare("INSERT INTO tb_produk (kode_produk, nama_produk, kategori, harga_beli, harga_jual, stok, satuan, foto)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    if (!$stmt) die("❌ Query gagal disiapkan: " . $conn->error);
+
+    $stmt->bind_param("sssddiss", $kode_produk, $nama_produk, $kategori, $harga_beli, $harga_jual, $stok, $satuan, $foto);
+    if (!$stmt->execute()) die("❌ Gagal menyimpan produk: " . $stmt->error);
+
+    // Tambah ke tabel menu juga
+    $stmt2 = $conn->prepare("INSERT INTO menu (menu, harga, foto) VALUES (?, ?, ?)");
+    if (!$stmt2) die("❌ Query menu gagal: " . $conn->error);
+    $stmt2->bind_param("sds", $nama_produk, $harga_jual, $foto);
+    $stmt2->execute();
+
+    echo "<script>alert('Produk baru berhasil ditambahkan 💕'); window.location='produk.php';</script>";
 }
-$username = $_SESSION["username"];
 
-// Koneksi ke database
-$koneksi = new mysqli("localhost", "root", "", "db_kasir");
-
-// Tambah produk baru
-if (isset($_POST['tambah'])) {
-    $kode = $_POST['kode_produk'];
-    $nama = $_POST['nama_produk'];
-    $kategori = $_POST['kategori'];
-    $harga_beli = $_POST['harga_beli'];
-    $harga_jual = $_POST['harga_jual'];
-    $stok = $_POST['stok'];
-    $satuan = $_POST['satuan'];
-
-    $koneksi->query("INSERT INTO tb_produk (kode_produk, nama_produk, kategori, harga_beli, harga_jual, stok, satuan)
-                     VALUES ('$kode', '$nama', '$kategori', '$harga_beli', '$harga_jual', '$stok', '$satuan')");
-    header("Location: produk.php");
-    exit;
-}
-
-// Hapus produk
+// === HAPUS PRODUK ===
 if (isset($_GET['hapus'])) {
     $id = $_GET['hapus'];
-    $koneksi->query("DELETE FROM produk WHERE id=$id");
-    header("Location: produk.php");
-    exit;
+    $conn->query("DELETE FROM tb_produk WHERE id_produk='$id'");
+    echo "<script>alert('Produk berhasil dihapus 🗑️'); window.location='produk.php';</script>";
+}
+
+// === EDIT PRODUK (ambil data) ===
+$edit = null;
+if (isset($_GET['edit'])) {
+    $id = $_GET['edit'];
+    $edit = $conn->query("SELECT * FROM tb_produk WHERE id_produk='$id'")->fetch_assoc();
+}
+
+// === UPDATE PRODUK ===
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
+    $id          = $_POST['id_produk'];
+    $kode_produk = $_POST['kode_produk'];
+    $nama_produk = $_POST['nama_produk'];
+    $kategori    = $_POST['kategori'];
+    $harga_beli  = $_POST['harga_beli'];
+    $harga_jual  = $_POST['harga_jual'];
+    $stok        = $_POST['stok'];
+    $satuan      = $_POST['satuan'];
+
+    // Cek foto baru
+    $foto = $_POST['foto_lama'];
+    if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
+        $target_dir = "uploads/";
+        if (!is_dir($target_dir)) mkdir($target_dir);
+        $nama_file = time() . "_" . basename($_FILES["foto"]["name"]);
+        $target_file = $target_dir . $nama_file;
+        move_uploaded_file($_FILES["foto"]["tmp_name"], $target_file);
+        $foto = $nama_file;
+    }
+
+    $stmt = $conn->prepare("UPDATE tb_produk SET kode_produk=?, nama_produk=?, kategori=?, harga_beli=?, harga_jual=?, stok=?, satuan=?, foto=? WHERE id_produk=?");
+    if (!$stmt) die("❌ Query gagal disiapkan: " . $conn->error);
+    $stmt->bind_param("sssddissi", $kode_produk, $nama_produk, $kategori, $harga_beli, $harga_jual, $stok, $satuan, $foto, $id);
+    if (!$stmt->execute()) die("❌ Gagal update produk: " . $stmt->error);
+
+    echo "<script>alert('Produk berhasil diperbarui ✨'); window.location='produk.php';</script>";
 }
 ?>
 
@@ -38,169 +88,205 @@ if (isset($_GET['hapus'])) {
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Data Produk | Kasir Melwaa</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manajemen Produk 💕</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 body {
   font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #fff1f8, #e2f7ff);
-  margin: 0;
-  color: #333;
-}
-header {
-  background: linear-gradient(90deg, #ff8cb8, #6ee3ff);
-  color: #fff;
-  padding: 25px 40px;
+  background: linear-gradient(135deg, #ffe6f2, #e0f7fa);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  padding: 30px;
+  min-height: 100vh;
 }
-header a {
-  background: #fff;
-  color: #ff69b4;
-  padding: 8px 16px;
-  border-radius: 10px;
-  text-decoration: none;
-  font-weight: bold;
-}
-header a:hover { background: #ffe0ef; transform: scale(1.05); }
 .container {
   background: #fff;
-  margin: 40px auto;
-  width: 90%;
-  max-width: 1100px;
-  padding: 30px;
+  padding: 30px 40px;
   border-radius: 20px;
-  box-shadow: 0 8px 25px rgba(255,182,193,0.3);
+  box-shadow: 0 8px 20px rgba(255,182,193,0.25);
+  width: 420px;
+  margin-bottom: 40px;
 }
 h2 {
-  text-align: center;
   color: #ff69b4;
-  margin-bottom: 30px;
+  text-align: center;
+  margin-bottom: 20px;
 }
-form {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 25px;
+label {
+  font-weight: 600;
+  color: #555;
+  display: block;
+  margin-top: 10px;
 }
 input, select {
+  width: 100%;
   padding: 10px;
+  border: 2px solid #ffb6c1;
   border-radius: 10px;
-  border: 1px solid #ccc;
-  font-family: 'Poppins', sans-serif;
+  margin-top: 5px;
+  outline: none;
+}
+input:focus, select:focus {
+  border-color: #ff69b4;
 }
 button {
-  background: linear-gradient(90deg, #ff69b4, #77e3f0);
-  color: #fff;
-  border: none;
+  margin-top: 20px;
+  width: 100%;
   padding: 10px;
-  border-radius: 10px;
-  font-weight: bold;
+  background-color: #ff69b4;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
   cursor: pointer;
 }
-button:hover { transform: scale(1.05); }
+button:hover { background-color: #ff85c1; }
+a.kembali {
+  display: inline-block;
+  margin-bottom: 15px;
+  background: #00bcd4;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+}
+a.kembali:hover { background: #0097a7; }
 table {
-  width: 100%;
   border-collapse: collapse;
+  width: 90%;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(255,182,193,0.25);
+  border-radius: 15px;
+  overflow: hidden;
 }
 th, td {
   padding: 10px 12px;
-  border-bottom: 1px solid #ffe4ec;
   text-align: center;
 }
-th {
-  background: linear-gradient(90deg, #ffb6c1, #a3f3ff);
-  color: #fff;
+th { background-color: #ff69b4; color: #fff; }
+tr:nth-child(even) { background-color: #fdf1f7; }
+img {
+  border-radius: 10px;
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
 }
-tr:hover { background: #fff6fa; }
-.action-btn {
-  background: #ff69b4;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 8px;
+a.btn {
   text-decoration: none;
-  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: white;
 }
-.action-btn:hover { opacity: 0.8; }
-.delete { background: #ff4d6d; }
-footer {
-  text-align: center;
-  font-size: 13px;
-  color: #777;
-  padding: 15px;
-  background: #fff;
-  border-top: 1px solid #ffd9ec;
-}
+a.edit { background: #00bcd4; }
+a.hapus { background: #f44336; }
+a.edit:hover { background: #0097a7; }
+a.hapus:hover { background: #d32f2f; }
 </style>
 </head>
 <body>
-<header>
-  <div>
-    <h1>Kasir Melwaa 🍜🥤🍪</h1>
-    <span>Hai, <?= htmlspecialchars($username) ?> — kelola produkmu di sini 💅</span>
-  </div>
-  <a href="dashboard_admin.php">🏠 Dashboard</a>
-</header>
 
 <div class="container">
-  <h2>📦 Data Produk</h2>
+  <a href="dashboard_admin.php" class="kembali">⬅️ Kembali ke Dashboard</a>
+  <h2><?= $edit ? 'Edit Produk ✏️' : 'Tambah Produk Baru 💖' ?></h2>
+  <form method="POST" enctype="multipart/form-data">
+    <?php if ($edit): ?>
+      <input type="hidden" name="id_produk" value="<?= $edit['id_produk'] ?>">
+      <input type="hidden" name="foto_lama" value="<?= $edit['foto'] ?>">
+    <?php endif; ?>
 
-  <!-- Form Tambah Produk -->
-  <form method="POST">
-    <input type="text" name="kode_produk" placeholder="Kode Produk" required>
-    <input type="text" name="nama_produk" placeholder="Nama Produk" required>
+    <label>Kode Produk</label>
+    <input type="text" name="kode_produk" value="<?= $edit['kode_produk'] ?? '' ?>" required>
+
+    <label>Nama Produk</label>
+    <input type="text" name="nama_produk" value="<?= $edit['nama_produk'] ?? '' ?>" required>
+
+    <label>Kategori</label>
     <select name="kategori" required>
-      <option value="">Pilih Kategori</option>
-      <option value="makanan">Makanan</option>
-      <option value="minuman">Minuman</option>
-      <option value="cemilan">Cemilan</option>
+      <option value="">-- Pilih Kategori --</option>
+      <?php
+      $kategori_list = ['Makanan', 'Minuman', 'Snack', 'Lainnya'];
+      foreach ($kategori_list as $kat) {
+          $selected = ($edit && $edit['kategori'] == $kat) ? 'selected' : '';
+          echo "<option value='$kat' $selected>$kat</option>";
+      }
+      ?>
     </select>
-    <input type="number" name="harga_beli" placeholder="Harga Beli" required>
-    <input type="number" name="harga_jual" placeholder="Harga Jual" required>
-    <input type="number" name="stok" placeholder="Stok" required>
-    <select name="satuan" required>
-      <option value="">Pilih Satuan</option>
-      <option value="pcs">Pcs</option>
-      <option value="bungkus">Paket</option>
-    </select>
-    <button type="submit" name="tambah">+ Tambah Produk</button>
-  </form>
 
-  <!-- Tabel Produk -->
-  <table>
-    <tr>
-      <th>No</th>
-      <th>Kode</th>
-      <th>Nama Produk</th>
-      <th>Kategori</th>
-      <th>Harga Beli</th>
-      <th>Harga Jual</th>
-      <th>Stok</th>
-      <th>Satuan</th>
-    </tr>
-    <?php
-    $no = 1;
-    $result = $koneksi->query("SELECT * FROM tb_produk ORDER BY id_produk DESC");
-    while ($row = $result->fetch_assoc()):
-    ?>
-    <tr>
-      <td><?= $no++ ?></td>
-      <td><?= htmlspecialchars($row['kode_produk']) ?></td>
-      <td><?= htmlspecialchars($row['nama_produk']) ?></td>
-      <td><?= ucfirst($row['kategori']) ?></td>
-      <td>Rp<?= number_format($row['harga_beli'], 0, ',', '.') ?></td>
-      <td>Rp<?= number_format($row['harga_jual'], 0, ',', '.') ?></td>
-      <td><?= $row['stok'] ?></td>
-      <td><?= $row['satuan'] ?></td>
-    </tr>
-    <?php endwhile; ?>
-  </table>
+    <label>Harga Beli</label>
+    <input type="number" name="harga_beli" value="<?= $edit['harga_beli'] ?? '' ?>" required>
+
+    <label>Harga Jual</label>
+    <input type="number" name="harga_jual" value="<?= $edit['harga_jual'] ?? '' ?>" required>
+
+    <label>Stok</label>
+    <input type="number" name="stok" value="<?= $edit['stok'] ?? '' ?>" required>
+
+    <label>Satuan</label>
+    <select name="satuan" required>
+      <option value="">-- Pilih Satuan --</option>
+      <?php
+      $satuan_list = ['pcs', 'botol', 'bungkus', 'cup', 'porsi'];
+      foreach ($satuan_list as $sat) {
+          $selected = ($edit && $edit['satuan'] == $sat) ? 'selected' : '';
+          echo "<option value='$sat' $selected>$sat</option>";
+      }
+      ?>
+    </select>
+
+    <label>Foto Produk</label>
+    <input type="file" name="foto" accept="image/*">
+    <?php if ($edit && $edit['foto']): ?>
+      <br><img src="uploads/<?= $edit['foto'] ?>" width="100" style="margin-top:10px;">
+    <?php endif; ?>
+
+    <button type="submit" name="<?= $edit ? 'update' : 'tambah' ?>">
+      <?= $edit ? 'Update ✏️' : 'Simpan 💾' ?>
+    </button>
+  </form>
 </div>
 
-<footer>
-  🍜🥤🍪 Kasir Melwaa — “Belanja Mudah, Untung Setiap Hari!” 💕
-</footer>
+<h2 style="color:#ff69b4;">Daftar Produk 💕</h2>
+<table>
+  <tr>
+    <th>No</th>
+    <th>Kode</th>
+    <th>Nama</th>
+    <th>Kategori</th>
+    <th>Harga Jual</th>
+    <th>Stok</th>
+    <th>Foto</th>
+    <th>Aksi</th>
+  </tr>
+  <?php
+  $no = 1;
+  $result = $conn->query("SELECT * FROM tb_produk ORDER BY id_produk DESC");
+  if ($result->num_rows > 0) {
+      while ($row = $result->fetch_assoc()) {
+          echo "<tr>
+                  <td>{$no}</td>
+                  <td>{$row['kode_produk']}</td>
+                  <td>{$row['nama_produk']}</td>
+                  <td>{$row['kategori']}</td>
+                  <td>Rp " . number_format($row['harga_jual'], 0, ',', '.') . "</td>
+                  <td>{$row['stok']} {$row['satuan']}</td>
+                  <td>";
+          echo $row['foto'] ? "<img src='uploads/{$row['foto']}'>" : "<em>—</em>";
+          echo "</td>
+                <td>
+                  <a href='?edit={$row['id_produk']}' class='btn edit'>Edit</a>
+                  <a href='?hapus={$row['id_produk']}' class='btn hapus' onclick='return confirm(\"Yakin ingin hapus produk ini?\")'>Hapus</a>
+                </td>
+              </tr>";
+          $no++;
+      }
+  } else {
+      echo "<tr><td colspan='8'><em>Belum ada produk ditambahkan 💔</em></td></tr>";
+  }
+  ?>
+</table>
+
 </body>
 </html>

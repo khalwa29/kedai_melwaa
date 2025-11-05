@@ -30,6 +30,23 @@ header {
     font-size: 22px;
     font-weight: 600;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    position: relative;
+}
+.back-btn {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #00bcd4;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.3s ease;
+}
+.back-btn:hover {
+    background: #0097a7;
 }
 .menu-container {
     display: grid;
@@ -84,7 +101,10 @@ footer {
 </head>
 <body>
 
-<header>🍰 Menu Kedai Melwaa 🍹</header>
+<header>
+    🍰 Menu Kedai Melwaa 🍹
+    <a href="dashboard_user.php" class="back-btn">⬅ Kembali ke Dashboard</a>
+</header>
 
 <div class="menu-container">
 <?php while ($row = $result->fetch_assoc()): ?>
@@ -93,7 +113,6 @@ footer {
         <h3><?= htmlspecialchars($row['nama_produk']) ?></h3>
         <p><b>Rp <?= number_format($row['harga_jual'], 0, ',', '.') ?></b></p>
         <small><?= ucfirst($row['kategori']) ?> — Stok: <?= $row['stok'] ?> <?= htmlspecialchars($row['satuan']) ?></small><br><br>
-        <button onclick="window.location.href='produk.php?id=<?= $row['id_produk'] ?>'">Pesan</button>
     </div>
 <?php endwhile; ?>
 </div>

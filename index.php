@@ -27,6 +27,7 @@ body {
     box-shadow: 0 8px 20px rgba(255,182,193,0.25);
     max-width: 400px;
     width: 90%;
+    position: relative;
 }
 
 h1 {
@@ -57,21 +58,101 @@ button:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 15px rgba(119,227,240,0.3);
 }
+
+/* Popup styling */
+.popup {
+    display: none;
+    position: fixed;
+    z-index: 10;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+}
+
+.popup-content {
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px 20px;
+    text-align: center;
+    width: 300px;
+    margin: 15% auto;
+    box-shadow: 0 8px 20px rgba(255,182,193,0.4);
+    position: relative;
+}
+
+.popup-content h2 {
+    color: #ff69b4;
+    font-size: 22px;
+    margin-bottom: 20px;
+}
+
+.popup-content button {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    background: linear-gradient(90deg, #ff69b4, #77e3f0);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 0;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.popup-content button:hover {
+    transform: scale(1.05);
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px; right: 15px;
+    font-size: 20px;
+    color: #888;
+    cursor: pointer;
+}
 </style>
 </head>
 <body>
 
 <div class="container">
     <h1>Kasir Kedai Melwaa ☕</h1>
-    <p>Pilih peranmu untuk melanjutkan ke sistem kasir.</p>
+    <p>Selamat datang di Kedai Melwaa — “Rasa Manis, Untung Manis.” 💕</p>
 
-    <button onclick="window.location.href='dashboard_user.php'">Login Pembeli 👩‍🍳</button>
-    <button onclick="window.location.href='login_admin.php'">Login Admin 🔐</button>
+    <button id="loginBtn">Login 🍰</button>
 
     <footer style="margin-top:25px; font-size:13px; color:#777;">
-        Kedai Melwaa — “Rasa Manis, Untung Manis.” 💕
+        © Kedai Melwaa 2025
     </footer>
 </div>
+
+<!-- Popup pilihan -->
+<div class="popup" id="loginPopup">
+  <div class="popup-content">
+    <span class="close-btn" onclick="closePopup()">✖</span>
+    <h2>Pilih Peranmu 💫</h2>
+    <button onclick="window.location.href='dashboard_user.php'">Masuk Sebagai User 👩‍🍳</button>
+    <button onclick="window.location.href='login_admin.php'">Masuk Sebagai Admin 🔐</button>
+  </div>
+</div>
+
+<script>
+const popup = document.getElementById('loginPopup');
+const loginBtn = document.getElementById('loginBtn');
+
+loginBtn.addEventListener('click', () => {
+    popup.style.display = 'block';
+});
+
+function closePopup() {
+    popup.style.display = 'none';
+}
+
+window.onclick = function(event) {
+    if (event.target === popup) {
+        popup.style.display = 'none';
+    }
+};
+</script>
 
 </body>
 </html>
