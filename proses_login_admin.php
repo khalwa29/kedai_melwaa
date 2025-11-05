@@ -41,7 +41,8 @@ if (isset($_POST['login'])) {
 
             echo "<script>
                     alert('Login berhasil! Selamat datang, {$user['username']}');
-                    window.location='dashboard_user.php';
+                    window.location = 'admin/dashboard_admin.php';
+
                   </script>";
         } else {
             echo "<script>

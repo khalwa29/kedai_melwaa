@@ -177,10 +177,10 @@ $stmtDetail->close();
 <body>
 <header>
   <div>
-    <h1 style="margin:0">Kasir Khawalicious</h1>
+    <h1 style="margin:0">Kasir Melwaa</h1>
     <div style="font-size:14px;margin-top:6px">Hai, <?= htmlspecialchars($username) ?> — halaman transaksi</div>
   </div>
-  <a href="dashboard.php">🏠 Dashboard</a>
+  <a href="dashboard_admin.php">🏠 Dashboard</a>
 </header>
 
 <div class="wrap">

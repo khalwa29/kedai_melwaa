@@ -93,10 +93,10 @@ footer {
 
 <header>
     <div>
-        <h1>🍜🥤🍪 Kasir Khawalicious 🍜🥤🍪</h1>
+        <h1>🍜🥤🍪 Kasir Melwaa 🍜🥤🍪</h1>
         <span>Halo, <?= htmlspecialchars($username) ?> — siap pantau penjualan hari ini? 💸</span>
     </div>
-    <a href="dashboard.php" style="text-decoration:none; padding:8px 12px; background:#4CAF50; color:white; border-radius:5px; font-weight:600;">🏠 Dashboard</a>
+    <a href="dashboard_admin.php" style="text-decoration:none; padding:8px 12px; background:#4CAF50; color:white; border-radius:5px; font-weight:600;">🏠 Dashboard</a>
 </header>
 
 <div class="container">
@@ -144,7 +144,7 @@ footer {
 </div>
 
 <footer>
-    🍜🥤🍪 Kasir Khawalicious — “Belanja Mudah, Untung Setiap Hari!” 💕
+    🍜🥤🍪 Kasir Melwaa — “Belanja Mudah, Untung Setiap Hari!” 💕
 </footer>
 
 <script>
