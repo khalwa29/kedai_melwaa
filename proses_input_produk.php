@@ -8,7 +8,7 @@ if (!isset($_SESSION['email'])) {
 }
 
 // Koneksi ke database
-$koneksi = new mysqli("localhost", "root", "", "db_chatgpt");
+$koneksi = new mysqli("localhost", "root", "", "db_kasir");
 
 // Cek koneksi
 if ($koneksi->connect_error) {
