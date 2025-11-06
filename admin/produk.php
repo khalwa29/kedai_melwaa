@@ -64,16 +64,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
     $stok        = $_POST['stok'];
     $satuan      = $_POST['satuan'];
 
-    // Cek foto baru
-    $foto = $_POST['foto_lama'];
-    if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
-        $target_dir = "uploads/";
-        if (!is_dir($target_dir)) mkdir($target_dir);
-        $nama_file = time() . "_" . basename($_FILES["foto"]["name"]);
-        $target_file = $target_dir . $nama_file;
-        move_uploaded_file($_FILES["foto"]["tmp_name"], $target_file);
-        $foto = $nama_file;
-    }
+    /// Cek foto baru
+if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
+    $target_dir = "uploads/";
+    if (!is_dir($target_dir)) mkdir($target_dir);
+
+    $nama_file = basename($_FILES["foto"]["name"]); // gunakan nama asli
+    $target_file = $target_dir . $nama_file;
+
+    move_uploaded_file($_FILES["foto"]["tmp_name"], $target_file);
+    $foto = $nama_file;
+}
+
 
     $stmt = $conn->prepare("UPDATE tb_produk SET kode_produk=?, nama_produk=?, kategori=?, harga_beli=?, harga_jual=?, stok=?, satuan=?, foto=? WHERE id_produk=?");
     if (!$stmt) die("❌ Query gagal disiapkan: " . $conn->error);
