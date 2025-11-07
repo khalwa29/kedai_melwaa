@@ -4,7 +4,7 @@ if (!isset($_SESSION["email"])) {
     header("Location: login.php");
     exit;
 }
-$username = $_SESSION["username"] ?? 'Kasir';
+$username = $_SESSION["username"] ?? 'db_Kasir';
 
 // koneksi DB — sesuaikan host/user/pass/db jika perlu
 $koneksi = new mysqli("localhost", "root", "", "db_kasir");

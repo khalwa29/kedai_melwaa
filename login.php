@@ -2,7 +2,7 @@
 session_start();
 
 // Koneksi ke database
-$conn = new mysqli("localhost", "root", "", "db_chatgpt");
+$conn = new mysqli("localhost", "root", "", "db_kasir");
 if ($conn->connect_error) {
     die("<h3 style='color:pink;text-align:center;'>Koneksi gagal 💔 : " . $conn->connect_error . "</h3>");
 }
