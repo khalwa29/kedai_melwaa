@@ -5,8 +5,11 @@ if ($koneksi->connect_error) {
     die("Koneksi gagal: " . $koneksi->connect_error);
 }
 
-// Ambil semua data dari tabel produk (bukan tb_produk lagi)
-$result = $koneksi->query("SELECT * FROM produk ORDER BY kategori, nama_produk");
+// Ambil semua data dari tabel tb_produk
+$result = $koneksi->query("SELECT * FROM tb_produk ORDER BY kategori, nama_produk");
+if (!$result) {
+    die("Query error: " . $koneksi->error);
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
