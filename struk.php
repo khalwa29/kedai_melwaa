@@ -1,26 +1,74 @@
 <?php
-session_start();
-if(!isset($_SESSION['pesanan'])) {
-    echo "Tidak ada pesanan.";
-    exit;
+include 'koneksi.php';
+
+// ambil nomor faktur dari URL
+$nomor_faktur = $_GET['faktur'] ?? '';
+
+if ($nomor_faktur == '') {
+    die("<h3>Nomor faktur tidak ditemukan.</h3>");
 }
 
-$pesanan = $_SESSION['pesanan'];
+// ambil data jual (master)
+$q1 = $koneksi->prepare("SELECT * FROM tb_jual WHERE nomor_faktur = ?");
+$q1->bind_param('s', $nomor_faktur);
+$q1->execute();
+$jual = $q1->get_result()->fetch_assoc();
+$q1->close();
+
+if (!$jual) {
+    die("<h3>Data transaksi tidak ditemukan.</h3>");
+}
+
+// ambil detail produk
+$q2 = $koneksi->prepare("SELECT * FROM rinci_jual WHERE nomor_faktur = ?");
+$q2->bind_param('s', $nomor_faktur);
+$q2->execute();
+$detail = $q2->get_result();
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Struk Pesanan - Kedai Melwaa 💕</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<title>Struk Transaksi <?= htmlspecialchars($nomor_faktur) ?></title>
 <style>
-body { font-family:'Poppins', sans-serif; background:#fff9fc; margin:0; padding:20px;}
-h1 { text-align:center; color:#ff4b9d; }
-h2 { text-align:center; color:#333; }
-.struk { max-width:600px; margin:20px auto; background:#fff; padding:25px; border-radius:15px; box-shadow:0 4px 12px rgba(0,0,0,0.1); font-family:monospace;}
-.struk table { width:100%; border-collapse: collapse; margin-top:20px;}
-.struk table th, .struk table td { border:1px solid #ddd; padding:10px; text-align:center;}
-.struk table th { background:#ff69b4; color:#fff;}
-.total { text-align:right; font-weight:bold; margin-top:15px; }
-.back-btn, .print-btn { display:block; text-align:center; margin:20px auto; text-decoration:none; background:#00
+body { font-family: 'Poppins', sans-serif; background: #fff; color: #333; }
+.container { width: 340px; margin: 20px auto; border: 1px dashed #aaa; padding: 16px; border-radius: 10px; }
+h2 { text-align: center; margin-bottom: 10px; color: #ff69b4; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td, th { padding: 4px 0; }
+tfoot td { font-weight: bold; border-top: 1px solid #ccc; }
+.center { text-align: center; }
+.btn-print { background: #ff69b4; color: #fff; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>Khawalicious Mart</h2>
+  <div style="text-align:center; font-size:13px;">Jl. Contoh No. 123<br><?= date('d/m/Y H:i', strtotime($jual['tanggal_beli'])) ?></div>
+  <hr>
+  <table>
+    <thead>
+      <tr><th>Produk</th><th>Qty</th><th align="right">Subtotal</th></tr>
+    </thead>
+    <tbody>
+      <?php while($row = $detail->fetch_assoc()): ?>
+      <tr>
+        <td><?= htmlspecialchars($row['nama_produk']) ?></td>
+        <td><?= (int)$row['qty'] ?></td>
+        <td align="right">Rp <?= number_format($row['total_harga'],0,',','.') ?></td>
+      </tr>
+      <?php endwhile; ?>
+    </tbody>
+    <tfoot>
+      <tr><td colspan="2">Total</td><td align="right">Rp <?= number_format($jual['total_belanja'],0,',','.') ?></td></tr>
+      <tr><td colspan="2">Bayar</td><td align="right">Rp <?= number_format($jual['total_bayar'],0,',','.') ?></td></tr>
+      <tr><td colspan="2">Kembalian</td><td align="right">Rp <?= number_format($jual['kembalian'],0,',','.') ?></td></tr>
+    </tfoot>
+  </table>
+  <hr>
+  <div class="center">Terima kasih telah berbelanja 💖</div>
+  <button class="btn-print" onclick="window.print()">🖨 Cetak Struk</button>
+</div>
+</body>
+</html>
