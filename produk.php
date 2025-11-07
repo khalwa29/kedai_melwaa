@@ -1,12 +1,12 @@
 <?php
-// Koneksi ke database
+// Koneksi ke database (nama database sudah diubah jadi kasir)
 $koneksi = new mysqli("localhost", "root", "", "db_kasir");
 if ($koneksi->connect_error) {
     die("Koneksi gagal: " . $koneksi->connect_error);
 }
 
-// Ambil semua data dari tb_produk
-$result = $koneksi->query("SELECT * FROM tb_produk ORDER BY kategori, nama_produk");
+// Ambil semua data dari tabel produk (bukan tb_produk lagi)
+$result = $koneksi->query("SELECT * FROM produk ORDER BY kategori, nama_produk");
 ?>
 <!DOCTYPE html>
 <html lang="id">

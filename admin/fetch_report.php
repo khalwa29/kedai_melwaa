@@ -1,5 +1,5 @@
 <?php
-$koneksi = new mysqli("localhost", "root", "", "db_chatgpt");
+$koneksi = new mysqli("localhost", "root", "", "db_kasir");
 
 $tgl_awal  = $_POST['tgl_awal'] ?? '';
 $tgl_akhir = $_POST['tgl_akhir'] ?? '';
