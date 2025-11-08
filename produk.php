@@ -1,5 +1,6 @@
 <?php
 // Koneksi ke database (nama database sudah diubah jadi kasir)
+
 $koneksi = new mysqli("localhost", "root", "", "db_kasir");
 if ($koneksi->connect_error) {
     die("Koneksi gagal: " . $koneksi->connect_error);
@@ -7,9 +8,6 @@ if ($koneksi->connect_error) {
 
 // Ambil semua data dari tabel tb_produk
 $result = $koneksi->query("SELECT * FROM tb_produk ORDER BY kategori, nama_produk");
-if (!$result) {
-    die("Query error: " . $koneksi->error);
-}
 ?>
 <!DOCTYPE html>
 <html lang="id">
