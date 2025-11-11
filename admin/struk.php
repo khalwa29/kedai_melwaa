@@ -1,5 +1,5 @@
 <?php
-include "koneksi.php";
+include "../koneksi.php";
 
 // --- Validasi nomor faktur ---
 if (!isset($_GET['nomor_faktur']) || empty($_GET['nomor_faktur'])) {
@@ -18,9 +18,9 @@ $d = mysqli_fetch_assoc($q);
 // --- Ambil data rincian barang ---
 $q_detail = mysqli_query($koneksi, "SELECT * FROM rinci_jual WHERE nomor_faktur='$nomor_faktur'");
 
-// --- Ambil metode pembayaran dari URL (opsional) ---
-$metode = isset($_GET['metode']) ? $_GET['metode'] : 'Tunai';
-$ewallet = isset($_GET['ewallet']) ? $_GET['ewallet'] : '-';
+// --- Ambil metode pembayaran langsung dari DB ---
+$metode = $d['metode_bayar'] ?? 'Tunai';
+$ewallet = $d['ewallet'] ?? '-';
 ?>
 
 <!DOCTYPE html>
@@ -35,6 +35,7 @@ body {
     margin: 20px auto;
     border: 1px dashed #000;
     padding: 10px;
+    background: #fff;
 }
 h2, h3 {
     text-align: center;
@@ -52,7 +53,7 @@ td, th {
 }
 .text-right { text-align: right; }
 .text-center { text-align: center; }
-hr { border: none; border-top: 1px dashed #000; }
+hr { border: none; border-top: 1px dashed #000; margin: 6px 0; }
 .print { margin-top: 10px; text-align: center; }
 button {
     background: #333;
@@ -65,12 +66,16 @@ button {
 button:hover {
     background: #555;
 }
+@media print {
+    .print { display: none; }
+    body { border: none; margin: 0; }
+}
 </style>
 </head>
 
 <body>
 
-<h2>TOKO MAKMUR JAYA</h2>
+<h2>KEDAI MELWAA</h2>
 <p class="text-center">Jl. Raya No.123 - Telp: 0812-3456-7890</p>
 <hr>
 
@@ -87,7 +92,7 @@ button:hover {
     <td>Metode Bayar</td>
     <td>: <?= htmlspecialchars($metode) ?></td>
 </tr>
-<?php if ($metode == 'E-Wallet'): ?>
+<?php if (strtolower($metode) == 'e-wallet' && $ewallet != '-'): ?>
 <tr>
     <td>Nama E-Wallet</td>
     <td>: <?= htmlspecialchars($ewallet) ?></td>
@@ -108,7 +113,7 @@ button:hover {
     <?php while ($p = mysqli_fetch_assoc($q_detail)) { ?>
     <tr>
         <td><?= htmlspecialchars($p['nama_produk']) ?></td>
-        <td><?= $p['qty'] ?></td>
+        <td><?= (int)$p['qty'] ?></td>
         <td class="text-right"><?= number_format($p['harga_jual'], 0, ',', '.') ?></td>
         <td class="text-right"><?= number_format($p['total_harga'], 0, ',', '.') ?></td>
     </tr>
@@ -116,7 +121,6 @@ button:hover {
 <?php else: ?>
     <tr><td colspan="4" class="text-center">Tidak ada data barang.</td></tr>
 <?php endif; ?>
-
 </table>
 <hr>
 
@@ -137,7 +141,7 @@ button:hover {
 <hr>
 
 <h3>Terima Kasih!</h3>
-<p class="text-center">Barang yang sudah dibeli tidak dapat dikembalikan.</p>
+<p class="text-center">Selamat Menikmati</p>
 
 <div class="print">
     <button onclick="window.print()">🖨️ Cetak Struk</button>
