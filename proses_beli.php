@@ -7,69 +7,53 @@ if ($koneksi->connect_error) {
 
 // Ambil data dari form
 $nama = $_POST['nama'];
-$id_produk = $_POST['id_produk']; // array
-$qty = $_POST['qty'];             // array
-$catatan = $_POST['catatan'];     // array
+$id_produk = $_POST['id_produk'];
+$qty = $_POST['qty'];
+$catatan = isset($_POST['catatan']) ? $_POST['catatan'] : [];
 
 // ===========================
-// 1️⃣ Buat nomor faktur otomatis
-// ===========================
-$q_faktur = $koneksi->query("SELECT MAX(nomor_faktur) AS faktur_terakhir FROM tb_jual");
-$d_faktur = $q_faktur->fetch_assoc();
-$last_faktur = $d_faktur['faktur_terakhir'];
-
-if ($last_faktur) {
-    $num = (int) substr($last_faktur, 3); // ambil angka setelah 'FAK'
-    $new_num = $num + 1;
-    $nomor_faktur = "FAK" . str_pad($new_num, 3, "0", STR_PAD_LEFT);
-} else {
-    $nomor_faktur = "FAK001";
-}
-
-// ===========================
-// 2️⃣ Hitung total & simpan detail ke tb_rinci_jual
+// 1️⃣ HITUNG TOTAL BELANJA (TANPA SIMPAN KE DATABASE)
 // ===========================
 $total_belanja = 0;
+$detail_pesanan = [];
 
 foreach ($id_produk as $index => $id) {
     $produk = $koneksi->query("SELECT * FROM tb_produk WHERE id_produk='$id'")->fetch_assoc();
     if ($produk) {
-        $harga_modal = $produk['harga_modal'];
+        $harga_modal = isset($produk['harga_modal']) ? $produk['harga_modal'] : 0;
         $harga_jual  = $produk['harga_jual'];
         $jumlah      = $qty[$index];
         $total_harga = $harga_jual * $jumlah;
         $untung      = ($harga_jual - $harga_modal) * $jumlah;
         $total_belanja += $total_harga;
 
-        $koneksi->query("INSERT INTO rinci_jual 
-            (nomor_faktur, kode_produk, nama_produk, harga_modal, harga_jual, qty, total_harga, untung)
-            VALUES 
-            ('$nomor_faktur', '{$produk['kode_produk']}', '{$produk['nama_produk']}', 
-             '$harga_modal', '$harga_jual', '$jumlah', '$total_harga', '$untung')");
+        $detail_pesanan[] = [
+            'id_produk'   => $id,
+            'kode_produk' => $produk['kode_produk'],
+            'nama_produk' => $produk['nama_produk'],
+            'harga_modal' => $harga_modal,
+            'harga_jual'  => $harga_jual,
+            'qty'         => $jumlah,
+            'total_harga' => $total_harga,
+            'untung'      => $untung
+        ];
     }
 }
 
 // ===========================
-// 3️⃣ Simpan ke tb_jual
+// 2️⃣ SIMPAN DATA KE SESSION (BELUM SIMPAN DATABASE)
 // ===========================
-$total_bayar = $total_belanja; // bisa diubah kalau pakai pembayaran e-wallet, tunai, dll
-$kembalian = 0; // nanti dihitung sesuai metode bayar
-
-$koneksi->query("INSERT INTO tb_jual (nomor_faktur, tanggal_beli, total_belanja, total_bayar, kembalian)
-VALUES ('$nomor_faktur', NOW(), '$total_belanja', '$total_bayar', '$kembalian')");
-
-// ===========================
-// 4️⃣ Simpan juga ke session (opsional, kalau masih dipakai)
-// ===========================
-$_SESSION['pesanan'] = [
-    'nama' => $nama,
-    'nomor_faktur' => $nomor_faktur,
-    'total' => $total_belanja
+$_SESSION['pesanan_sementara'] = [
+    'nama'           => $nama,
+    'total_belanja'  => $total_belanja,
+    'detail_pesanan' => $detail_pesanan,
+    'id_produk'      => $id_produk,
+    'qty'            => $qty
 ];
 
 // ===========================
-// 5️⃣ Redirect ke halaman struk
+// 3️⃣ REDIRECT KE HALAMAN PEMBAYARAN
 // ===========================
-header("Location: struk.php?nomor_faktur=$nomor_faktur");
+header("Location: pembayaran.php");
 exit;
 ?>
