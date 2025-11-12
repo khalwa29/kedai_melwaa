@@ -1,5 +1,5 @@
 <?php
-include 'koneksi.php';
+include '../koneksi.php';
 
 // === TAMBAH PRODUK ===
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
@@ -264,7 +264,7 @@ a.hapus:hover { background: #d32f2f; }
   </tr>
   <?php
   $no = 1;
-  $result = $conn->query("SELECT * FROM tb_produk ORDER BY id_produk DESC");
+  $result = $koneksi->query("SELECT * FROM tb_produk ORDER BY id_produk DESC");
   if ($result->num_rows > 0) {
       while ($row = $result->fetch_assoc()) {
           echo "<tr>

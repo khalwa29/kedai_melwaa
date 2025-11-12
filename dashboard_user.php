@@ -69,7 +69,6 @@ footer {
     <button onclick="window.location.href='produk.php'">📋 Lihat Menu</button>
     <button onclick="window.location.href='beli.php'">🛍️ Pesan Sekarang</button>
     <button onclick="window.location.href='index.php'">🏠 Kembali ke Beranda</button>
-    <button onclick="window.location.href='logout.php'">🚪 Logout</button>
 
     <footer>Kedai Melwaa — “Nikmatin Harimu dengan Secangkir Bahagia.” 💕</footer>
 </div>
