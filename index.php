@@ -131,7 +131,7 @@ button:hover {
     <span class="close-btn" onclick="closePopup()">✖</span>
     <h2>Pilih Peranmu 💫</h2>
     <button onclick="window.location.href='dashboard_user.php'">Masuk Sebagai User 👩‍🍳</button>
-    <button onclick="window.location.href='login_admin.php'">Masuk Sebagai Admin 🔐</button>
+    <button onclick="window.location.href='login.php'">Masuk Sebagai Admin 🔐</button>
   </div>
 </div>
 
