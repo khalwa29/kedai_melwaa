@@ -40,7 +40,7 @@ $metode_bayar = $_SESSION['pesanan_selesai']['metode_bayar'] ?? ($jual['metode_b
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Struk Transaksi <?= htmlspecialchars($nomor_faktur) ?> - Khawalicious Mart</title>
+<title>Struk Transaksi <?= htmlspecialchars($nomor_faktur) ?> - KhaMelicious </title>
 <style>
 * {
     margin: 0;
@@ -275,7 +275,7 @@ body {
         <div class="struk-box">
             <!-- HEADER -->
             <div class="header">
-                <div class="store-name">Khawalicious Mart</div>
+                <div class="store-name">KhaMelicious Mart</div>
                 <div class="store-address">Jl. Kemerdekaan No. 123 - Telp: (021) 1234-5678</div>
             </div>
 

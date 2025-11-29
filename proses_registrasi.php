@@ -1,125 +1,151 @@
 <?php
-session_start();
-
 // Koneksi ke database
-$conn = new mysqli("localhost", "root", "", "db_kasir");
-if ($conn->connect_error) {
-    die("<h3 style='color:pink;text-align:center;'>Koneksi gagal 💔 : " . $conn->connect_error . "</h3>");
+$koneksi = new mysqli("localhost", "root", "", "db_kasir");
+
+// Cek koneksi
+if ($koneksi->connect_error) {
+    die("Koneksi gagal: " . $koneksi->connect_error);
 }
 
-// Proses registrasi kalau form dikirim
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+// Cek apakah tombol register diklik
+if (isset($_POST['register'])) {
+    $nama = trim($_POST['nama']);
     $username = trim($_POST['username']);
     $email = trim($_POST['email']);
-    $password = $_POST['password'];
-    $confirm_password = $_POST['confirm_password'];
+    $password = trim($_POST['password']);
+    $confirm_password = trim($_POST['confirm_password']);
 
     // Validasi input
-    if (empty($username) || empty($email) || empty($password)) {
-        echo "<script>alert('😿 Semua field harus diisi~');</script>";
-    } elseif ($password !== $confirm_password) {
-        echo "<script>alert('😿 Password dan konfirmasi password tidak cocok~');</script>";
-    } elseif (strlen($password) < 6) {
-        echo "<script>alert('😿 Password minimal 6 karakter~');</script>";
-    } else {
-        // Cek apakah email sudah terdaftar
-        $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
+    $errors = [];
 
-        if ($result->num_rows > 0) {
-            echo "<script>alert('😿 Email sudah terdaftar, gunakan email lain~');</script>";
+    if (empty($nama) || empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
+        $errors[] = "Semua field wajib diisi!";
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "Format email tidak valid!";
+    }
+
+    if (strlen($password) < 6) {
+        $errors[] = "Password harus minimal 6 karakter!";
+    }
+
+    if ($password !== $confirm_password) {
+        $errors[] = "Password dan konfirmasi password tidak cocok!";
+    }
+
+    if (!isset($_POST['agree_terms'])) {
+        $errors[] = "Anda harus menyetujui syarat dan ketentuan!";
+    }
+
+    // Cek apakah email sudah terdaftar
+    $stmt = $koneksi->prepare("SELECT id FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $errors[] = "Email sudah terdaftar!";
+    }
+    $stmt->close();
+
+    // Cek apakah username sudah terdaftar
+    $stmt = $koneksi->prepare("SELECT id FROM users WHERE username = ?");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $errors[] = "Username sudah terdaftar!";
+    }
+    $stmt->close();
+
+    // Jika ada error, redirect kembali ke form dengan data error
+    if (!empty($errors)) {
+        $error_string = implode(",", $errors);
+        $redirect_url = "login_admin.php?register_errors=" . urlencode($error_string) . 
+                       "&nama=" . urlencode($nama) . 
+                       "&username=" . urlencode($username) . 
+                       "&email_old=" . urlencode($email);
+        header("Location: $redirect_url");
+        exit;
+    }
+
+    // Jika tidak ada error, proses pendaftaran
+    // Hash password
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+    
+    // Default role sebagai admin
+    $role = 'admin';
+    
+    // COBA BEBERAPA KEMUNGKINAN STRUKTUR TABEL users:
+    
+    // Opsi 1: Jika tabel punya kolom nama, username, email, password, role
+    try {
+        $stmt = $koneksi->prepare("INSERT INTO users (nama, username, email, password, role) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssss", $nama, $username, $email, $hashed_password, $role);
+        
+        if ($stmt->execute()) {
+            // Redirect ke halaman login dengan pesan sukses
+            header("Location: login_admin.php?message=Pendaftaran berhasil! Silakan login.&success=1");
+            exit;
         } else {
-            // Hash password dan simpan ke database
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            
-            $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-            $stmt->bind_param("sss", $username, $email, $hashed_password);
+            throw new Exception($stmt->error);
+        }
+    } catch (Exception $e) {
+        // Opsi 2: Jika tabel punya kolom name (bukan nama)
+        try {
+            $stmt = $koneksi->prepare("INSERT INTO users (name, username, email, password, role) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssss", $nama, $username, $email, $hashed_password, $role);
             
             if ($stmt->execute()) {
-                echo "<script>
-                        alert('🎀 Registrasi berhasil! Silakan login ya~ 💕');
-                        window.location='index.php';
-                      </script>";
+                header("Location: login_admin.php?message=Pendaftaran berhasil! Silakan login.&success=1");
                 exit;
             } else {
-                echo "<script>alert('😿 Terjadi kesalahan, coba lagi nanti~');</script>";
+                throw new Exception($stmt->error);
+            }
+        } catch (Exception $e2) {
+            // Opsi 3: Jika tabel hanya punya username, email, password (tanpa nama dan role)
+            try {
+                $stmt = $koneksi->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+                $stmt->bind_param("sss", $username, $email, $hashed_password);
+                
+                if ($stmt->execute()) {
+                    header("Location: login_admin.php?message=Pendaftaran berhasil! Silakan login.&success=1");
+                    exit;
+                } else {
+                    throw new Exception($stmt->error);
+                }
+            } catch (Exception $e3) {
+                // Opsi 4: Jika tabel hanya punya email dan password
+                try {
+                    $stmt = $koneksi->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
+                    $stmt->bind_param("ss", $email, $hashed_password);
+                    
+                    if ($stmt->execute()) {
+                        header("Location: login_admin.php?message=Pendaftaran berhasil! Silakan login.&success=1");
+                        exit;
+                    } else {
+                        throw new Exception($stmt->error);
+                    }
+                } catch (Exception $e4) {
+                    $errors[] = "Terjadi kesalahan database: " . $e4->getMessage();
+                    $error_string = implode(",", $errors);
+                    header("Location: login_admin.php?register_errors=" . urlencode($error_string));
+                    exit;
+                }
             }
         }
+    }
+    
+    if (isset($stmt)) {
         $stmt->close();
     }
+} else {
+    // Jika akses langsung, redirect ke halaman login
+    header("Location: login_admin.php");
+    exit;
 }
-$conn->close();
+
+$koneksi->close();
 ?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Registrasi Kasir 💕</title>
-  <style>
-    body {
-      font-family: "Poppins", sans-serif;
-      background: linear-gradient(135deg, #ffe6f2, #e0f7fa);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .container {
-      background-color: #fff;
-      border-radius: 20px;
-      padding: 30px;
-      width: 380px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      border: 3px solid #ffd6e7;
-      position: relative;
-    }
-    h2 { color: #ff69b4; font-size: 24px; margin-bottom: 20px; }
-    label { display: block; text-align: left; margin-top: 10px; color: #444; font-weight: 600; }
-    input { width: 100%; padding: 10px; margin-top: 5px; border: 2px solid #ffb6c1; border-radius: 10px; outline: none; transition: 0.3s; font-size: 14px; box-sizing: border-box; }
-    input:focus { border-color: #ff69b4; box-shadow: 0 0 8px rgba(255,182,193,0.6); }
-    button { background-color: #ff69b4; color: white; border: none; border-radius: 12px; padding: 10px 0; width: 100%; margin-top: 20px; font-size: 16px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 8px rgba(255,105,180,0.3); }
-    button:hover { background-color: #ff85c1; transform: scale(1.03); }
-    p { margin-top: 15px; font-size: 14px; }
-    a { color: #ff69b4; text-decoration: none; font-weight: bold; }
-    a:hover { text-decoration: underline; }
-    .emoji { font-size: 40px; position: absolute; top: -20px; right: -10px; }
-    .back-btn { 
-        background-color: #ffb6c1; 
-        margin-top: 10px; 
-        box-shadow: 0 4px 8px rgba(255,182,193,0.3);
-    }
-    .back-btn:hover { 
-        background-color: #ffa0b4; 
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="emoji">🌺</div>
-    <h2>Daftar Akun Baru 💫</h2>
-    <form method="POST" autocomplete="off">
-      <label>Username</label>
-      <input type="text" name="username" placeholder="Buat username unik" required>
-      
-      <label>Email</label>
-      <input type="email" name="email" placeholder="Masukkan email aktif" required>
-      
-      <label>Password</label>
-      <input type="password" name="password" placeholder="Minimal 6 karakter" required>
-      
-      <label>Konfirmasi Password</label>
-      <input type="password" name="confirm_password" placeholder="Ulangi password" required>
-      
-      <button type="submit">Daftar Sekarang 🌟</button>
-    </form>
-    
-    <button class="back-btn" onclick="window.location.href='index.php'">Kembali </button>
-    
-    <p>Sudah punya akun? <a href="index.php">Login di sini 💖</a></p>
-  </div>
-</body>
-</html>
