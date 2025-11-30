@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['username'] = $user['username'];
             $_SESSION['email']    = $user['email'];
 
-            // Redirect ke dashboard admin YANG ADA DI DALAM FOLDER ADMIN
+            // Redirect ke dashboard admin
             echo "<script>
                     alert('🎀 Selamat datang kembali, " . addslashes($user['username']) . " 💕');
                     window.location='admin/dashboard_admin.php';

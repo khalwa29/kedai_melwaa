@@ -275,7 +275,7 @@ body {
         <div class="struk-box">
             <!-- HEADER -->
             <div class="header">
-                <div class="store-name">KhaMelicious Mart</div>
+                <div class="store-name">Kedai Melwaa</div>
                 <div class="store-address">Jl. Kemerdekaan No. 123 - Telp: (021) 1234-5678</div>
             </div>
 

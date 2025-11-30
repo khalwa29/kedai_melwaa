@@ -1,5 +1,6 @@
 <?php
-// Koneksi ke database
+// Koneksi ke database (nama database sudah diubah jadi kasir)
+
 $koneksi = new mysqli("localhost", "root", "", "db_kasir");
 if ($koneksi->connect_error) {
     die("Koneksi gagal: " . $koneksi->connect_error);
@@ -109,19 +110,15 @@ footer {
 <div class="menu-container">
 <?php while ($row = $result->fetch_assoc()): ?>
     <div class="card">
-        <!-- PATH FOTO TETAP SAMA -->
         <img src="uploads/<?= htmlspecialchars($row['foto']) ?>" alt="<?= htmlspecialchars($row['nama_produk']) ?>">
         <h3><?= htmlspecialchars($row['nama_produk']) ?></h3>
         <p><b>Rp <?= number_format($row['harga_jual'], 0, ',', '.') ?></b></p>
-        <small>
-            <?= ucfirst($row['kategori']) ?> — 
-            Stok: <strong style="color: #2e7d32;"><?= $row['stok'] ?></strong> <?= htmlspecialchars($row['satuan']) ?>
-        </small><br><br>
+        <small><?= ucfirst($row['kategori']) ?> — Stok: <?= $row['stok'] ?> <?= htmlspecialchars($row['satuan']) ?></small><br><br>
     </div>
 <?php endwhile; ?>
 </div>
 
-<footer>💖 Kedai Melwaa — "Maniskan Harimu Setiap Saat." 💖</footer>
+<footer>💖 Kedai Melwaa — “Maniskan Harimu Setiap Saat.” 💖</footer>
 
 </body>
 </html>

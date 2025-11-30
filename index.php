@@ -115,7 +115,7 @@ button:hover {
 <body>
 
 <div class="container">
-    <h1>Kasir Kedai Melwaa ☕</h1>
+    <h1>Kedai Melwaa ☕</h1>
     <p>Selamat datang di Kedai Melwaa </p>
 
     <button id="loginBtn">Login 🍰</button>

@@ -191,7 +191,7 @@ thead th{background:linear-gradient(90deg,#ffb6c1,#a3f3ff);color:#fff}
 <body>
 <header>
   <div>
-    <h1 style="margin:0">Kasir Pembelian - Kedai Melwaa 📥</h1>
+    <h1 style="margin:0"> Kedai Melwaa </h1>
     <div style="font-size:14px;margin-top:6px">Hai, <?= htmlspecialchars($username) ?></div>
   </div>
   <a href="dashboard_admin.php">🏠 Dashboard</a>
@@ -218,7 +218,12 @@ thead th{background:linear-gradient(90deg,#ffb6c1,#a3f3ff);color:#fff}
     <div class="cart-total">
       <h3>💰 Total Pembelian: Rp <span id="totalBelanja">0</span></h3>
       
-              <label>
+      <div class="payment-section">
+        <label>
+          <span class="jenis-transaksi">📥 Jenis: PEMBELIAN </span>
+        </label>
+        
+        <label>
           <span class="metode-bayar">💳 Metode Bayar:</span>
           <select id="selectMetodeBayar" style="width:150px">
             <option value="Tunai">Tunai</option>
@@ -231,12 +236,12 @@ thead th{background:linear-gradient(90deg,#ffb6c1,#a3f3ff);color:#fff}
             <input id="inputBayar" type="number" min="0" step="1000" value="0" placeholder="0" style="width:120px">
           </label>
           
-          <label>🔄 Kembalian: Rp 
+          <label> Kembalian: Rp 
             <input id="inputKembali" type="text" readonly value="0" style="background:#f0f0f0;font-weight:bold;color:#4CAF50;width:120px">
           </label>
         </div>
         
-        <button id="btnBayar" class="pay-btn">✅ Simpan Pembelian</button>
+        <button id="btnBayar" class="pay-btn">💳 Proses Bayar</button>
       </div>
 
       <!-- QRIS SECTION -->
@@ -469,8 +474,16 @@ document.getElementById('btnBayar').addEventListener('click', async function(){
                 confirmButtonText: "OK"
             });
             
-            // Redirect ke struk.php setelah transaksi berhasil
-            window.location.href = `struk.php?nomor_faktur=${data.nomor_faktur}`;
+            // Reset cart dan refresh data produk
+            cart = {};
+            renderCart();
+            document.getElementById('inputBayar').value = 0;
+            document.getElementById('selectMetodeBayar').value = 'Tunai';
+            togglePaymentMethod();
+            recalcKembali();
+            
+            // Refresh data produk untuk melihat stok terbaru
+            fetchProducts();
             
         } else {
             Swal.fire("Gagal", data.error || "Gagal menyimpan transaksi", "error");

@@ -242,7 +242,7 @@ $koneksi->close();
     <div class="button-group no-print">
         <button class="btn btn-print" onclick="window.print()">🖨️ Cetak Struk</button>
         <a href="kasir.php" class="btn btn-kasir">💰 Kembali ke Kasir</a>
-        
+        </a>
     </div>
 
     <script>
