@@ -1,151 +1,257 @@
 <?php
-include "../koneksi.php";
-
-// --- Validasi nomor faktur ---
-if (!isset($_GET['nomor_faktur']) || empty($_GET['nomor_faktur'])) {
-    die("<h3 style='text-align:center;color:red;'>Nomor faktur tidak ditemukan!</h3>");
+session_start();
+if (!isset($_SESSION["email"])) {
+    header("Location: ../login.php");
+    exit;
 }
 
-$nomor_faktur = mysqli_real_escape_string($koneksi, $_GET['nomor_faktur']);
-
-// --- Ambil data transaksi utama ---
-$q = mysqli_query($koneksi, "SELECT * FROM tb_jual WHERE nomor_faktur='$nomor_faktur'");
-if (!$q || mysqli_num_rows($q) == 0) {
-    die("<h3 style='text-align:center;color:red;'>Data transaksi dengan nomor faktur $nomor_faktur tidak ditemukan!</h3>");
+// Koneksi database
+$koneksi = new mysqli("localhost", "root", "", "db_kasir");
+if ($koneksi->connect_error) {
+    die("Koneksi gagal: " . $koneksi->connect_error);
 }
-$d = mysqli_fetch_assoc($q);
 
-// --- Ambil data rincian barang ---
-$q_detail = mysqli_query($koneksi, "SELECT * FROM rinci_jual WHERE nomor_faktur='$nomor_faktur'");
+// Ambil data transaksi berdasarkan nomor faktur
+$nomor_faktur = $_GET['nomor_faktur'] ?? '';
 
-// --- Ambil metode pembayaran langsung dari DB ---
-$metode = $d['metode_bayar'] ?? 'Tunai';
-$ewallet = $d['ewallet'] ?? '-';
+if (empty($nomor_faktur)) {
+    die("Nomor faktur tidak valid");
+}
+
+// Ambil data header transaksi
+$stmt = $koneksi->prepare("SELECT * FROM tb_jual WHERE nomor_faktur = ?");
+$stmt->bind_param("s", $nomor_faktur);
+$stmt->execute();
+$result = $stmt->get_result();
+$transaksi = $result->fetch_assoc();
+$stmt->close();
+
+if (!$transaksi) {
+    die("Transaksi tidak ditemukan");
+}
+
+// Ambil detail transaksi
+$stmt = $koneksi->prepare("SELECT * FROM rinci_jual WHERE nomor_faktur = ?");
+$stmt->bind_param("s", $nomor_faktur);
+$stmt->execute();
+$result = $stmt->get_result();
+$detail_transaksi = $result->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+$koneksi->close();
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<title>Struk Pembelian</title>
-<style>
-body {
-    font-family: "Courier New", monospace;
-    width: 320px;
-    margin: 20px auto;
-    border: 1px dashed #000;
-    padding: 10px;
-    background: #fff;
-}
-h2, h3 {
-    text-align: center;
-    margin: 0;
-}
-p, td, th {
-    font-size: 13px;
-}
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-td, th {
-    padding: 3px;
-}
-.text-right { text-align: right; }
-.text-center { text-align: center; }
-hr { border: none; border-top: 1px dashed #000; margin: 6px 0; }
-.print { margin-top: 10px; text-align: center; }
-button {
-    background: #333;
-    color: white;
-    padding: 6px 12px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-button:hover {
-    background: #555;
-}
-@media print {
-    .print { display: none; }
-    body { border: none; margin: 0; }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Struk - Kedai Melwaa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.3;
+            background: #fff;
+            color: #000;
+            padding: 10px;
+        }
+        .struk-container {
+            max-width: 300px;
+            margin: 0 auto;
+            border: 1px solid #000;
+            padding: 15px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .info-transaksi {
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 10px;
+        }
+        .info-transaksi .row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+        .detail-items {
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 10px;
+        }
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+        }
+        .item-name {
+            flex: 2;
+        }
+        .item-qty, .item-price, .item-total {
+            flex: 1;
+            text-align: right;
+        }
+        .total-section {
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 10px;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .barcode {
+            text-align: center;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+        @media print {
+            .no-print {
+                display: none;
+            }
+            body {
+                padding: 0;
+            }
+            .struk-container {
+                border: none;
+                padding: 10px;
+            }
+        }
+        .button-group {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .btn {
+            padding: 8px 15px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 12px;
+        }
+        .btn-print {
+            background: #007bff;
+            color: white;
+        }
+        .btn-kasir {
+            background: #28a745;
+            color: white;
+        }
+        .btn-dashboard {
+            background: #6f42c1;
+            color: white;
+        }
+    </style>
 </head>
-
 <body>
+    <div class="struk-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>KEDAI MELWAA</h1>
+            <p>Jl. Contoh Alamat No. 123</p>
+            <p>Telp: 0812-3456-7890</p>
+            <p>================================</p>
+        </div>
 
-<h2>KEDAI MELWAA</h2>
-<p class="text-center">Jl. Raya No.123 - Telp: 0812-3456-7890</p>
-<hr>
+        <!-- Info Transaksi -->
+        <div class="info-transaksi">
+            <div class="row">
+                <span>No. Faktur:</span>
+                <span><?= htmlspecialchars($transaksi['nomor_faktur']) ?></span>
+            </div>
+            <div class="row">
+                <span>Tanggal:</span>
+                <span><?= date('d/m/Y H:i', strtotime($transaksi['tanggal_beli'])) ?></span>
+            </div>
+            <div class="row">
+                <span>Kasir:</span>
+                <span><?= htmlspecialchars($_SESSION['username'] ?? 'Admin') ?></span>
+            </div>
+            <div class="row">
+                <span>Metode:</span>
+                <span><?= htmlspecialchars($transaksi['metode_bayar'] ?? 'Tunai') ?></span>
+            </div>
+            <p>--------------------------------</p>
+        </div>
 
-<table>
-<tr>
-    <td>No. Faktur</td>
-    <td>: <?= htmlspecialchars($d['nomor_faktur']) ?></td>
-</tr>
-<tr>
-    <td>Tanggal</td>
-    <td>: <?= date("d-m-Y H:i", strtotime($d['tanggal_beli'])) ?></td>
-</tr>
-<tr>
-    <td>Metode Bayar</td>
-    <td>: <?= htmlspecialchars($metode) ?></td>
-</tr>
-<?php if (strtolower($metode) == 'e-wallet' && $ewallet != '-'): ?>
-<tr>
-    <td>Nama E-Wallet</td>
-    <td>: <?= htmlspecialchars($ewallet) ?></td>
-</tr>
-<?php endif; ?>
-</table>
+        <!-- Detail Items -->
+        <div class="detail-items">
+            <?php foreach ($detail_transaksi as $item): ?>
+            <div class="item-row">
+                <div class="item-name"><?= htmlspecialchars($item['nama_produk']) ?></div>
+                <div class="item-qty"><?= $item['qty'] ?>x</div>
+                <div class="item-price"><?= number_format($item['harga_jual'], 0, ',', '.') ?></div>
+                <div class="item-total"><?= number_format($item['total_harga'], 0, ',', '.') ?></div>
+            </div>
+            <?php endforeach; ?>
+            <p>--------------------------------</p>
+        </div>
 
-<hr>
-<table>
-<tr>
-    <th>Nama</th>
-    <th>Qty</th>
-    <th class="text-right">Harga</th>
-    <th class="text-right">Sub</th>
-</tr>
+        <!-- Total Section -->
+        <div class="total-section">
+            <div class="total-row">
+                <span>Sub Total:</span>
+                <span>Rp <?= number_format($transaksi['total_belanja'], 0, ',', '.') ?></span>
+            </div>
+            <div class="total-row">
+                <span>Bayar:</span>
+                <span>Rp <?= number_format($transaksi['total_bayar'], 0, ',', '.') ?></span>
+            </div>
+            <div class="total-row">
+                <span>Kembalian:</span>
+                <span>Rp <?= number_format($transaksi['kembalian'], 0, ',', '.') ?></span>
+            </div>
+            <p>================================</p>
+        </div>
 
-<?php if (mysqli_num_rows($q_detail) > 0): ?>
-    <?php while ($p = mysqli_fetch_assoc($q_detail)) { ?>
-    <tr>
-        <td><?= htmlspecialchars($p['nama_produk']) ?></td>
-        <td><?= (int)$p['qty'] ?></td>
-        <td class="text-right"><?= number_format($p['harga_jual'], 0, ',', '.') ?></td>
-        <td class="text-right"><?= number_format($p['total_harga'], 0, ',', '.') ?></td>
-    </tr>
-    <?php } ?>
-<?php else: ?>
-    <tr><td colspan="4" class="text-center">Tidak ada data barang.</td></tr>
-<?php endif; ?>
-</table>
-<hr>
+        <!-- Footer -->
+        <div class="footer">
+            <p>** TERIMA KASIH **</p>
+            <p>Selamat menikmati hidangan kami</p>
+            <div class="barcode">
+                <?= $transaksi['nomor_faktur'] ?>
+            </div>
+        </div>
+    </div>
 
-<table>
-<tr>
-    <td>Total Belanja</td>
-    <td class="text-right">Rp <?= number_format($d['total_belanja'], 0, ',', '.') ?></td>
-</tr>
-<tr>
-    <td>Total Bayar</td>
-    <td class="text-right">Rp <?= number_format($d['total_bayar'], 0, ',', '.') ?></td>
-</tr>
-<tr>
-    <td>Kembalian</td>
-    <td class="text-right">Rp <?= number_format($d['kembalian'], 0, ',', '.') ?></td>
-</tr>
-</table>
-<hr>
+    <!-- Tombol Aksi -->
+    <div class="button-group no-print">
+        <button class="btn btn-print" onclick="window.print()">🖨️ Cetak Struk</button>
+        <a href="kasir.php" class="btn btn-kasir">💰 Kembali ke Kasir</a>
+        
+    </div>
 
-<h3>Terima Kasih!</h3>
-<p class="text-center">Selamat Menikmati</p>
-
-<div class="print">
-    <button onclick="window.print()">🖨️ Cetak Struk</button>
-</div>
-
+    <script>
+        // Auto print ketika halaman struk dibuka
+        window.onload = function() {
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        };
+    </script>
 </body>
 </html>

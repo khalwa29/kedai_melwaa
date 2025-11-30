@@ -116,12 +116,12 @@ button:hover {
 
 <div class="container">
     <h1>Kasir Kedai Melwaa ☕</h1>
-    <p>Selamat datang di Kedai Melwaa — “Rasa Manis, Untung Manis.” 💕</p>
+    <p>Selamat datang di Kedai Melwaa </p>
 
     <button id="loginBtn">Login 🍰</button>
 
     <footer style="margin-top:25px; font-size:13px; color:#777;">
-        © Kedai Melwaa 2025
+        
     </footer>
 </div>
 
