@@ -151,7 +151,7 @@ $conn->close();
         box-shadow: 0 4px 8px rgba(255,182,193,0.3);
     }
     .back-btn:hover { 
-        background-color: #ffa0b4; 
+        background-color: #ffb6c1; 
     }
     .form-group {
         margin-bottom: 15px;

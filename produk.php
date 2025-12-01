@@ -1,12 +1,15 @@
 <?php
-// Koneksi ke database
-$koneksi = new mysqli("localhost", "root", "", "db_kasir");
-if ($koneksi->connect_error) {
-    die("Koneksi gagal: " . $koneksi->connect_error);
-}
+session_start();
 
-// Ambil semua data dari tabel tb_produk
-$result = $koneksi->query("SELECT * FROM tb_produk ORDER BY kategori, nama_produk");
+// Koneksi ke database
+$conn = new mysqli("localhost", "root", "", "db_kasir");
+if ($conn->connect_error) {
+    die("<h3 style='color:pink;text-align:center;'>Koneksi gagal 💔 : " . $conn->connect_error . "</h3>");
+}
+$conn->set_charset("utf8");
+
+// Ambil semua data dari tabel tb_produk yang stoknya lebih dari 0
+$result = $conn->query("SELECT * FROM tb_produk WHERE stok > 0 ORDER BY kategori, nama_produk");
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -78,6 +81,7 @@ header {
     box-shadow: 0 8px 25px rgba(255,140,184,0.15);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     cursor: pointer;
+    position: relative;
 }
 
 .card:hover {
@@ -98,6 +102,7 @@ header {
     height: 100%;
     object-fit: cover;
     transition: transform 0.4s ease;
+    display: block;
 }
 
 .card:hover .card-image img {
@@ -129,6 +134,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
+    text-transform: capitalize;
 }
 
 .card-price {
@@ -153,7 +159,16 @@ header {
     font-size: 11px;
     font-weight: 600;
     text-transform: capitalize;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+    color: #ff69b4;
+    font-size: 18px;
+    font-weight: 600;
 }
 
 footer {
@@ -178,69 +193,73 @@ footer {
     
     header {
         font-size: 20px;
-        padding: 20px 15px;
+        padding: 20px 60px 20px 20px;
     }
     
     .back-btn {
         font-size: 12px;
         padding: 8px 15px;
+        right: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .menu-container {
+        grid-template-columns: 1fr;
+        padding: 0 15px;
     }
 }
 </style>
 </head>
 <body>
+
 <header>
     🍰 Menu Kedai Melwaa 🍹
-    <a href="dashboard_user.php" class="back-btn">⬅ Kembali ke Dashboard</a>
+    <a href="dashboard_user.php" class="back-btn">⬅ Kembali</a>
 </header>
 
 <div class="menu-container">
-<?php while ($row = $result->fetch_assoc()): ?>
+<?php 
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        // Ambil nama file foto dari database
+        $namaFile = !empty($row['foto']) ? trim($row['foto']) : '';
+        
+        // Path foto untuk file di ROOT folder
+        $fotoPath = "admin/uploads/" . $namaFile;
+        $fotoExists = !empty($namaFile) && file_exists($fotoPath);
+?>
     <div class="card">
         <div class="card-image">
-            <?php 
-            // Ambil nama file dari database
-            $namaFile = !empty($row['foto']) ? $row['foto'] : '';
-            
-            // Cek berbagai kemungkinan lokasi foto
-            $fotoPaths = [
-                "uploads/" . $namaFile,
-                "images/" . $namaFile,
-                "../uploads/" . $namaFile,
-            ];
-            
-            $fotoFound = false;
-            $validPath = "";
-            
-            // Cek setiap kemungkinan path
-            foreach ($fotoPaths as $path) {
-                if (!empty($namaFile) && file_exists($path)) {
-                    $fotoFound = true;
-                    $validPath = $path;
-                    break;
-                }
-            }
-            
-            if ($fotoFound): 
-            ?>
-                <img src="<?php echo htmlspecialchars($validPath); ?>" 
-                     alt="<?php echo htmlspecialchars($row['nama_produk']); ?>" 
-                     onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'no-image\'>📸</div>';">
+            <?php if ($fotoExists): ?>
+                <img src="<?= htmlspecialchars($fotoPath) ?>" 
+                     alt="<?= htmlspecialchars($row['nama_produk']) ?>" 
+                     loading="lazy">
             <?php else: ?>
                 <div class="no-image">📸</div>
             <?php endif; ?>
         </div>
         
         <div class="card-content">
-            <h3 class="card-title"><?php echo htmlspecialchars($row['nama_produk']); ?></h3>
-            <div class="card-price">Rp <?php echo number_format($row['harga_jual'], 0, ',', '.'); ?></div>
-            <span class="category-badge"><?php echo ucfirst($row['kategori']); ?></span>
-            <div class="card-info">Stok: <?php echo $row['stok']; ?> <?php echo htmlspecialchars($row['satuan']); ?></div>
+            <h3 class="card-title"><?= htmlspecialchars($row['nama_produk']) ?></h3>
+            <div class="card-price">Rp <?= number_format($row['harga_jual'], 0, ',', '.') ?></div>
+            <span class="category-badge"><?= htmlspecialchars(ucfirst($row['kategori'])) ?></span>
+            <div class="card-info">Stok: <?= $row['stok'] ?> <?= htmlspecialchars($row['satuan']) ?></div>
         </div>
     </div>
-<?php endwhile; ?>
+<?php 
+    }
+} else {
+?>
+    <div class="empty-state">
+        😿 Belum ada produk tersedia saat ini.<br>
+        Silakan cek lagi nanti ya! 💕
+    </div>
+<?php } ?>
 </div>
 
 <footer>💖 Kedai Melwaa — "Maniskan Harimu Setiap Saat." 💖</footer>
+
 </body>
 </html>
+<?php $conn->close(); ?>
