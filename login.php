@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'];
 
     // Ambil data user berdasarkan email
-    $stmt = $conn->prepare("SELECT id, username, email, password, role FROM users WHERE email = ?");
+    $stmt = $conn->prepare("SELECT id, username, email, password FROM users WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -27,20 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['user_id']  = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['email']    = $user['email'];
-            $_SESSION['role']     = $user['role']; // simpan role di session
 
-            // Tentukan halaman tujuan berdasarkan role
-            if ($user['role'] === 'admin') {
-                echo "<script>
-                        alert('👑 Selamat datang Admin, " . addslashes($user['username']) . "!');
-                        window.location='dashboard_admin.php';
-                      </script>";
-            } else {
-                echo "<script>
-                        alert('🎀 Selamat datang kembali, " . addslashes($user['username']) . " 💕');
-                        window.location='dashboard_user.php';
-                      </script>";
-            }
+            // Redirect ke dashboard admin
+            echo "<script>
+                    alert('🎀 Selamat datang kembali, " . addslashes($user['username']) . " 💕');
+                    window.location='admin/dashboard_admin.php';
+                  </script>";
             exit;
         } else {
             echo "<script>alert('😿 Password salah, coba lagi ya~');</script>";
@@ -101,7 +93,7 @@ $conn->close();
       <input type="password" name="password" placeholder="Masukkan password rahasia" required>
       <button type="submit">Masuk 💌</button>
     </form>
-    <p>Belum punya akun? <a href="registrasi.php">Daftar di sini 💫</a></p>
+    <p>Belum punya akun? <a href="proses_registrasi.php">Daftar di sini 💫</a></p>
   </div>
 </body>
 </html>

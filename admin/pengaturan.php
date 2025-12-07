@@ -103,7 +103,7 @@ footer {
 
 <header>
     <div>
-        <h1>⚙️ Kasir Melwaa </h1>
+        <h1>⚙️ Kedai Melwaa </h1>
         <span>Halo, <?= htmlspecialchars($_SESSION['username']) ?> — Atur menu dashboardmu</span>
     </div>
     <a href="dashboard_admin.php" style="text-decoration:none; padding:8px 12px; background:#4CAF50; color:white; border-radius:5px; font-weight:600;">🏠 Dashboard</a>

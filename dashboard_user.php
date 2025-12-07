@@ -82,7 +82,12 @@ footer {
     <button onclick="window.location.href='produk.php'">📋 Lihat Menu</button>
     <button onclick="window.location.href='beli.php'">🛍️ Pesan Sekarang</button>
     <button onclick="window.location.href='index.php'">🏠 Kembali ke Beranda</button>
+<<<<<<< HEAD
+
+    <footer>Kedai Melwaa — “Nikmatin Harimu dengan Secangkir Bahagia.” 💕</footer>
+=======
        <footer>Kedai Melwaa — "Nikmatin Harimu dengan Secangkir Bahagia." 💕</footer>
+>>>>>>> 4a5e0947be7db5afdb64477fe81736dacf39c30f
 </div>
 
 </body>

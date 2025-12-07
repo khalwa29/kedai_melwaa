@@ -115,13 +115,13 @@ button:hover {
 <body>
 
 <div class="container">
-    <h1>Kasir Kedai Melwaa ☕</h1>
-    <p>Selamat datang di Kedai Melwaa — “Rasa Manis, Untung Manis.” 💕</p>
+    <h1>Kedai Melwaa ☕</h1>
+    <p>Selamat datang di Kedai Melwaa </p>
 
     <button id="loginBtn">Login 🍰</button>
 
     <footer style="margin-top:25px; font-size:13px; color:#777;">
-        © Kedai Melwaa 2025
+        
     </footer>
 </div>
 
@@ -131,7 +131,7 @@ button:hover {
     <span class="close-btn" onclick="closePopup()">✖</span>
     <h2>Pilih Peranmu 💫</h2>
     <button onclick="window.location.href='dashboard_user.php'">Masuk Sebagai User 👩‍🍳</button>
-    <button onclick="window.location.href='login_admin.php'">Masuk Sebagai Admin 🔐</button>
+    <button onclick="window.location.href='login.php'">Masuk Sebagai Admin 🔐</button>
   </div>
 </div>
 
