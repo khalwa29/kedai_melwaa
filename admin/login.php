@@ -93,7 +93,8 @@ $conn->close();
       <input type="password" name="password" placeholder="Masukkan password rahasia" required>
       <button type="submit">Masuk 💌</button>
     </form>
-    <p>Belum punya akun? <a href="">Hubungi Admin 💫</a></p>
+
+    <p>Belum punya akun? <a href="">Daftar Disini </a></p>
   </div>
 </body>
 </html>

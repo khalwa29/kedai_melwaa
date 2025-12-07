@@ -22,6 +22,15 @@ body {
     box-shadow: 0 8px 20px rgba(255,182,193,0.25);
 }
 
+.guest-notice {
+    background: #fff0f5;
+    border: 2px dashed #ff69b4;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 20px;
+    color: #ff1493;
+}
+
 h1 {
     color: #ff69b4;
     font-size: 28px;
@@ -52,6 +61,10 @@ button:hover {
     box-shadow: 0 8px 15px rgba(255,105,180,0.3);
 }
 
+.logout-btn {
+    background: linear-gradient(90deg, #ff4444, #ff8585);
+}
+
 footer {
     margin-top: 30px;
     font-size: 13px;
@@ -61,16 +74,20 @@ footer {
 </head>
 <body>
 
-<div class="container">
-    <h1>☕ Selamat Datang di Kedai Melwaa!</h1>
-    <p>Hai pelanggan manis 💖, siap menikmati menu spesial hari ini?</p>
 
-    <!-- Tombol Lihat Menu diarahkan ke produk.php -->
+    </div>
+    
+    <h1>☕ Selamat Datang di Kedai Melwaa!</h1>
+    
     <button onclick="window.location.href='produk.php'">📋 Lihat Menu</button>
     <button onclick="window.location.href='beli.php'">🛍️ Pesan Sekarang</button>
     <button onclick="window.location.href='index.php'">🏠 Kembali ke Beranda</button>
+<<<<<<< HEAD
 
     <footer>Kedai Melwaa — “Nikmatin Harimu dengan Secangkir Bahagia.” 💕</footer>
+=======
+       <footer>Kedai Melwaa — "Nikmatin Harimu dengan Secangkir Bahagia." 💕</footer>
+>>>>>>> 4a5e0947be7db5afdb64477fe81736dacf39c30f
 </div>
 
 </body>

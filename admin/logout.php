@@ -5,7 +5,7 @@ session_start();
 session_unset();
 session_destroy();
 
-// Arahkan ke halaman login
-header("Location: dashboard_admin.php");
+// Redirect ke index.php yang ada di folder user (root)
+header("Location: ../index.php");
 exit;
 ?>

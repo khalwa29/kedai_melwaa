@@ -36,7 +36,7 @@ if (isset($_GET['action'])) {
             $stmt->close();
 
             $stmt = $koneksi->prepare("
-                SELECT id_produk, kode_produk, nama_produk, kategori, harga_jual, stok, satuan
+                SELECT id_produk, kode_produk, nama_produk, kategori, harga_beli, stok, satuan
                 FROM tb_produk
                 WHERE nama_produk LIKE ? OR kode_produk LIKE ?
                 ORDER BY id_produk DESC LIMIT ? OFFSET ?
@@ -48,7 +48,7 @@ if (isset($_GET['action'])) {
             $totalRows = (int)$row['cnt'];
 
             $stmt = $koneksi->prepare("
-                SELECT id_produk, kode_produk, nama_produk, kategori, harga_jual, stok, satuan
+                SELECT id_produk, kode_produk, nama_produk, kategori, harga_beli, stok, satuan
                 FROM tb_produk ORDER BY id_produk DESC LIMIT ? OFFSET ?
             ");
             $stmt->bind_param('ii', $perPage, $offset);
@@ -68,7 +68,7 @@ if (isset($_GET['action'])) {
         exit;
     }
 
-    // === PROSES CHECKOUT ===
+    // === PROSES CHECKOUT PEMBELIAN ===
     if ($action === 'checkout' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
         if (!$input) {
@@ -80,58 +80,65 @@ if (isset($_GET['action'])) {
         $total = floatval($input['total'] ?? 0);
         $bayar = floatval($input['bayar'] ?? 0);
         $kembalian = floatval($input['kembalian'] ?? 0);
-        $metode = $input['metode'] ?? 'Tunai';
-        $ewallet = $input['ewallet'] ?? '-';
+        $metode_bayar = $input['metode_bayar'] ?? 'Tunai';
 
         if (empty($cart) || $total <= 0) {
             echo json_encode(["error" => "Keranjang kosong atau total tidak valid"]);
             exit;
         }
 
-        $nomorFaktur = 'INV' . date('YmdHis') . rand(100, 999);
+        $nomorFaktur = 'PBL' . date('YmdHis') . rand(100, 999);
 
         $koneksi->begin_transaction();
         try {
             // Simpan ke tb_jual
             $stmt = $koneksi->prepare("
                 INSERT INTO tb_jual 
-                (nomor_faktur, tanggal_beli, total_belanja, total_bayar, kembalian, metode_bayar, ewallet)
-                VALUES (?, NOW(), ?, ?, ?, ?, ?)
+                (nomor_faktur, tanggal_beli, total_belanja, total_bayar, kembalian, metode_bayar)
+                VALUES (?, NOW(), ?, ?, ?, ?)
             ");
-            $stmt->bind_param('sdddss', $nomorFaktur, $total, $bayar, $kembalian, $metode, $ewallet);
+            $stmt->bind_param('sddds', $nomorFaktur, $total, $bayar, $kembalian, $metode_bayar);
             $stmt->execute();
             $stmt->close();
 
             // Simpan ke rinci_jual
             $stmtDetail = $koneksi->prepare("
                 INSERT INTO rinci_jual 
-                (nomor_faktur, kode_produk, nama_produk, harga_modal, harga_jual, qty, total_harga, untung)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (nomor_faktur, kode_produk, nama_produk, harga_jual, qty, total_harga)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+
+            // UPDATE STOK - TAMBAH stok produk (karena PEMBELIAN)
+            $stmtUpdateStok = $koneksi->prepare("
+                UPDATE tb_produk SET stok = stok + ? WHERE id_produk = ?
             ");
 
             foreach ($cart as $item) {
+                $id_produk = $item['id_produk'];
                 $kode_produk = $item['id_produk'];
                 $nama_produk = $item['nama_produk'];
-                $harga_modal = 0;
-                $harga_jual = floatval($item['harga_jual']);
+                $harga_beli = floatval($item['harga_beli']);
                 $qty = intval($item['qty']);
-                $total_harga = $harga_jual * $qty;
-                $untung = ($harga_jual - $harga_modal) * $qty;
+                $total_harga = $harga_beli * $qty;
 
+                // Simpan detail transaksi
                 $stmtDetail->bind_param(
-                    'sssddidd',
+                    'sssdid',
                     $nomorFaktur,
                     $kode_produk,
                     $nama_produk,
-                    $harga_modal,
-                    $harga_jual,
+                    $harga_beli,
                     $qty,
-                    $total_harga,
-                    $untung
+                    $total_harga
                 );
                 $stmtDetail->execute();
+
+                // TAMBAH stok produk (karena PEMBELIAN/restock)
+                $stmtUpdateStok->bind_param('ii', $qty, $id_produk);
+                $stmtUpdateStok->execute();
             }
             $stmtDetail->close();
+            $stmtUpdateStok->close();
 
             $koneksi->commit();
             echo json_encode(["success" => true, "nomor_faktur" => $nomorFaktur]);
@@ -148,13 +155,13 @@ if (isset($_GET['action'])) {
 }
 ?>
 
-<!-- =============== HALAMAN KASIR =============== -->
+<!-- =============== HALAMAN KASIR PEMBELIAN =============== -->
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kasir - Kedai Melwaa</title>
+<title>Kasir Pembelian - Kedai Melwaa</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
@@ -167,56 +174,82 @@ h2{color:#ff69b4;margin:0 0 12px}
 table{width:100%;border-collapse:collapse}
 th,td{padding:10px;border-bottom:1px solid #f6dfe9;text-align:left}
 thead th{background:linear-gradient(90deg,#ffb6c1,#a3f3ff);color:#fff}
-.add-btn{background:#ff69b4;color:#fff;padding:6px 10px;border-radius:8px;border:none;cursor:pointer}
-.pagination{display:flex;gap:6px;margin-top:10px}
-.pay-btn{background:linear-gradient(90deg,#ff69b4,#77e3f0);color:#fff;padding:10px 14px;border:none;border-radius:10px;cursor:pointer}
+.add-btn{background:#4CAF50;color:#fff;padding:6px 10px;border-radius:8px;border:none;cursor:pointer}
+.pay-btn{background:linear-gradient(90deg,#4CAF50,#77e3f0);color:#fff;padding:10px 14px;border:none;border-radius:10px;cursor:pointer}
+.cart-total{background:#f0fff0;padding:15px;border-radius:10px;margin-top:15px;border:2px solid #4CAF50}
+.cart-total h3{color:#2e7d32;margin:0 0 10px 0}
+.payment-section{display:flex;flex-wrap:wrap;gap:15px;align-items:center;margin-top:15px}
+.payment-section label{display:flex;align-items:center;gap:5px;font-weight:600}
+.payment-section input, .payment-section select{padding:8px;border:2px solid #4CAF50;border-radius:8px;font-size:14px}
+.metode-bayar{background:#e6f7ff;padding:8px 12px;border-radius:8px;border:2px solid #6ee3ff;font-weight:bold;color:#0066cc}
+.jenis-transaksi{background:#e8f7e8;padding:8px 12px;border-radius:8px;border:2px solid #4caf50;font-weight:bold;color:#2e7d32}
+.qris-section{display:none;background:#f0fff0;padding:15px;border-radius:10px;border:2px solid #4caf50;margin-top:10px;text-align:center}
+.qris-code{font-size:24px;font-weight:bold;color:#2e7d32;margin:10px 0}
+.loading{display:none;text-align:center;padding:10px;color:#4CAF50}
 </style>
 </head>
 <body>
 <header>
   <div>
-    <h1 style="margin:0">Kasir Melwaa</h1>
+    <h1 style="margin:0"> Kedai Melwaa </h1>
     <div style="font-size:14px;margin-top:6px">Hai, <?= htmlspecialchars($username) ?></div>
   </div>
   <a href="dashboard_admin.php">🏠 Dashboard</a>
 </header>
 
 <div class="wrap">
-  <h2>Daftar Produk</h2>
+  <h2>📦 Daftar Produk Tersedia</h2>
+  <div class="loading" id="loadingProducts">Memuat data produk...</div>
   <div class="card">
     <table id="productTable">
-      <thead><tr><th>No</th><th>Kode</th><th>Nama</th><th>Harga</th><th>Stok</th><th>Satuan</th><th>Aksi</th></tr></thead>
+      <thead><tr><th>No</th><th>Kode</th><th>Nama</th><th>Harga Beli</th><th>Stok Saat Ini</th><th>Satuan</th><th>Aksi</th></tr></thead>
       <tbody id="productBody"></tbody>
     </table>
   </div>
 
-  <h2 style="margin-top:20px;">Keranjang Belanja</h2>
+  <h2 style="margin-top:20px;">🛒 Keranjang Pembelian</h2>
   <div class="card">
     <table id="cartTable">
-      <thead><tr><th>No</th><th>Nama Produk</th><th>Harga</th><th>Qty</th><th>Total</th><th>Aksi</th></tr></thead>
+      <thead><tr><th>No</th><th>Nama Produk</th><th>Harga Beli</th><th>Qty Beli</th><th>Total</th><th>Aksi</th></tr></thead>
       <tbody id="cartBody"></tbody>
     </table>
 
-    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
-      <label>Metode Bayar:
-        <select id="metodeBayar">
-          <option value="Tunai">Tunai</option>
-          <option value="E-Wallet">E-Wallet</option>
-        </select>
-      </label>
-      <label id="ewalletLabel" style="display:none;">
-        Nama E-Wallet:
-        <select id="ewalletName">
-          <option value="">-- Pilih --</option>
-          <option value="Dana">Dana</option>
-          <option value="OVO">OVO</option>
-          <option value="GoPay">GoPay</option>
-          <option value="ShopeePay">ShopeePay</option>
-        </select>
-      </label>
-      <label>Total Bayar: Rp <input id="inputBayar" type="number" min="0" step="1" value="0"></label>
-      <label>Kembalian: Rp <input id="inputKembali" type="number" readonly></label>
-      <button id="btnBayar" class="pay-btn">Bayar</button>
+    <!-- TOTAL & PEMBAYARAN SECTION -->
+    <div class="cart-total">
+      <h3>💰 Total Pembelian: Rp <span id="totalBelanja">0</span></h3>
+      
+      <div class="payment-section">
+        <label>
+          <span class="jenis-transaksi">📥 Jenis: PEMBELIAN </span>
+        </label>
+        
+        <label>
+          <span class="metode-bayar">💳 Metode Bayar:</span>
+          <select id="selectMetodeBayar" style="width:150px">
+            <option value="Tunai">Tunai</option>
+            <option value="QRIS">QRIS</option>
+          </select>
+        </label>
+        
+        <div id="tunaiSection">
+          <label>💵 Jumlah Bayar: Rp 
+            <input id="inputBayar" type="number" min="0" step="1000" value="0" placeholder="0" style="width:120px">
+          </label>
+          
+          <label> Kembalian: Rp 
+            <input id="inputKembali" type="text" readonly value="0" style="background:#f0f0f0;font-weight:bold;color:#4CAF50;width:120px">
+          </label>
+        </div>
+        
+        <button id="btnBayar" class="pay-btn">💳 Proses Bayar</button>
+      </div>
+
+      <!-- QRIS SECTION -->
+      <div id="qrisSection" class="qris-section">
+        <div style="font-weight:bold;color:#2e7d32;margin-bottom:10px;">📱 Scan QR Code Below</div>
+        <div class="qris-code">🔄 Generating QR Code...</div>
+        <div style="font-size:12px;color:#666;margin-top:10px;">Total: Rp <span id="qrisTotal">0</span></div>
+      </div>
     </div>
   </div>
 </div>
@@ -225,95 +258,247 @@ thead th{background:linear-gradient(90deg,#ffb6c1,#a3f3ff);color:#fff}
 const apiUrl = 'kasir.php';
 let cart = {};
 
-function formatRupiah(num){return (Number(num)||0).toLocaleString('id-ID');}
-
-async function fetchProducts(page=1){
-  const res = await fetch(`${apiUrl}?action=list_products&page=${page}`);
-  const data = await res.json();
-  const tbody = document.getElementById('productBody');
-  tbody.innerHTML = '';
-  let no = 1;
-  for(const p of data.products){
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${no++}</td><td>${p.kode_produk}</td><td>${p.nama_produk}</td>
-      <td>Rp ${formatRupiah(p.harga_jual)}</td><td>${p.stok}</td><td>${p.satuan}</td>
-      <td><button class='add-btn' onclick='addToCart(${p.id_produk},"${p.nama_produk}",${p.harga_jual})'>Tambah</button></td>
-    `;
-    tbody.appendChild(tr);
-  }
+function formatRupiah(num){
+    return 'Rp ' + (Number(num) || 0).toLocaleString('id-ID');
 }
 
-function addToCart(id,nama,harga){
-  if(!cart[id]) cart[id]={id_produk:id,nama_produk:nama,harga_jual:harga,qty:1};
-  else cart[id].qty++;
-  renderCart();
+function showLoading(show) {
+    document.getElementById('loadingProducts').style.display = show ? 'block' : 'none';
+}
+
+// Toggle antara Tunai dan QRIS
+function togglePaymentMethod() {
+    const metode = document.getElementById('selectMetodeBayar').value;
+    const tunaiSection = document.getElementById('tunaiSection');
+    const qrisSection = document.getElementById('qrisSection');
+    const total = Number(document.getElementById('totalBelanja').textContent.replace(/[^\d]/g, '') || 0);
+    
+    if (metode === 'QRIS') {
+        tunaiSection.style.display = 'none';
+        qrisSection.style.display = 'block';
+        document.getElementById('qrisTotal').textContent = total.toLocaleString('id-ID');
+        
+        // Generate kode QRIS sederhana (simulasi)
+        document.querySelector('.qris-code').textContent = 'QRIS-' + Date.now();
+        
+        // Auto-set bayar sama dengan total untuk QRIS
+        document.getElementById('inputBayar').value = total;
+        recalcKembali();
+    } else {
+        tunaiSection.style.display = 'flex';
+        qrisSection.style.display = 'none';
+    }
+}
+
+async function fetchProducts(page = 1){
+    showLoading(true);
+    try {
+        const res = await fetch(`${apiUrl}?action=list_products&page=${page}`);
+        const data = await res.json();
+        const tbody = document.getElementById('productBody');
+        tbody.innerHTML = '';
+        
+        let no = 1;
+        for(const p of data.products){
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${no++}</td>
+                <td>${p.kode_produk}</td>
+                <td>${p.nama_produk}</td>
+                <td>${formatRupiah(p.harga_beli)}</td>
+                <td>${p.stok}</td>
+                <td>${p.satuan}</td>
+                <td>
+                    <button class='add-btn' onclick='addToCart(${p.id_produk},"${p.nama_produk}",${p.harga_beli})'>
+                        ➕ Tambah
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire("Error", "Gagal memuat data produk", "error");
+    } finally {
+        showLoading(false);
+    }
+}
+
+function addToCart(id, nama, harga_beli){
+    if(!cart[id]) {
+        cart[id] = {
+            id_produk: id,
+            nama_produk: nama,
+            harga_beli: harga_beli,
+            qty: 1
+        };
+    } else {
+        cart[id].qty++;
+    }
+    renderCart();
 }
 
 function renderCart(){
-  const tbody=document.getElementById('cartBody');tbody.innerHTML='';
-  let total=0,i=1;
-  for(const id in cart){
-    const item=cart[id],sub=item.harga_jual*item.qty;
-    total+=sub;
-    tbody.innerHTML+=`<tr><td>${i++}</td><td>${item.nama_produk}</td><td>Rp ${formatRupiah(item.harga_jual)}</td>
-    <td><input type='number' min='1' value='${item.qty}' onchange='updateQty(${id},this.value)'></td>
-    <td>Rp ${formatRupiah(sub)}</td><td><button onclick='removeItem(${id})'>❌</button></td></tr>`;
-  }
-  document.getElementById('inputBayar').dataset.total=total;
-  recalcKembali();
-}
-
-function updateQty(id,val){if(val<=0)delete cart[id];else cart[id].qty=parseInt(val);renderCart();}
-function removeItem(id){delete cart[id];renderCart();}
-function recalcKembali(){
-  const total=Number(document.getElementById('inputBayar').dataset.total||0);
-  const bayar=Number(document.getElementById('inputBayar').value||0);
-  document.getElementById('inputKembali').value=Math.max(0,bayar-total);
-}
-
-document.getElementById('inputBayar').addEventListener('input',recalcKembali);
-document.getElementById('metodeBayar').addEventListener('change',function(){
-  document.getElementById('ewalletLabel').style.display=(this.value==='E-Wallet')?'inline-block':'none';
-});
-
-document.getElementById('btnBayar').addEventListener('click', async()=>{
-  const bayar=Number(document.getElementById('inputBayar').value||0);
-  const total=Number(document.getElementById('inputBayar').dataset.total||0);
-  const kembalian=Math.max(0,bayar-total);
-  const metode=document.getElementById('metodeBayar').value;
-  const ewallet=document.getElementById('ewalletName').value;
-
-  if(Object.keys(cart).length===0) return Swal.fire("Keranjang Kosong","Tambahkan produk dahulu","warning");
-  if(bayar < total) return Swal.fire("Pembayaran Kurang","Jumlah bayar belum cukup","error");
-
-  const payload={cart:Object.values(cart),total,bayar,kembalian,metode,ewallet};
-
-  try{
-    const res=await fetch(`${apiUrl}?action=checkout`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
-    });
-    const data=await res.json();
-
-    if(data.success){
-      await Swal.fire({
-        title:"Transaksi Berhasil!",
-        html:`Nomor Faktur: <b>${data.nomor_faktur}</b><br>Metode: ${metode}<br>Kembalian: Rp ${formatRupiah(kembalian)}`,
-        icon:"success"
-      });
-      window.location.href=`struk.php?nomor_faktur=${data.nomor_faktur}`;
-    }else{
-      Swal.fire("Gagal",data.error||"Gagal menyimpan transaksi","error");
+    const tbody = document.getElementById('cartBody');
+    tbody.innerHTML = '';
+    let total = 0;
+    let i = 1;
+    
+    if (Object.keys(cart).length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">Keranjang kosong</td></tr>';
+    } else {
+        for(const id in cart){
+            const item = cart[id];
+            const subTotal = item.harga_beli * item.qty;
+            total += subTotal;
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${i++}</td>
+                <td>${item.nama_produk}</td>
+                <td>${formatRupiah(item.harga_beli)}</td>
+                <td>
+                    <input type='number' min='1' value='${item.qty}' 
+                           onchange='updateQty(${id}, this.value)' 
+                           style='width: 60px; padding: 5px; border: 1px solid #4CAF50; border-radius: 5px;'>
+                </td>
+                <td>${formatRupiah(subTotal)}</td>
+                <td>
+                    <button onclick='removeItem(${id})' 
+                            style='background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;'>
+                        🗑️ Hapus
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
     }
-  }catch(err){
-    Swal.fire("Kesalahan","Tidak dapat terhubung ke server","error");
-    console.error(err);
-  }
+    
+    // Update total belanja
+    document.getElementById('totalBelanja').textContent = total.toLocaleString('id-ID');
+    document.getElementById('inputBayar').dataset.total = total;
+    document.getElementById('qrisTotal').textContent = total.toLocaleString('id-ID');
+    
+    // Recalculate change
+    recalcKembali();
+}
+
+function updateQty(id, val){
+    const qty = parseInt(val);
+    if(qty <= 0){
+        delete cart[id];
+    } else {
+        cart[id].qty = qty;
+    }
+    renderCart();
+}
+
+function removeItem(id){
+    delete cart[id];
+    renderCart();
+}
+
+function recalcKembali(){
+    const total = Number(document.getElementById('inputBayar').dataset.total || 0);
+    const bayar = Number(document.getElementById('inputBayar').value || 0);
+    const kembalian = Math.max(0, bayar - total);
+    
+    document.getElementById('inputKembali').value = formatRupiah(kembalian);
+}
+
+// Event Listeners
+document.getElementById('inputBayar').addEventListener('input', recalcKembali);
+document.getElementById('selectMetodeBayar').addEventListener('change', togglePaymentMethod);
+
+document.getElementById('btnBayar').addEventListener('click', async function(){
+    const metodeBayar = document.getElementById('selectMetodeBayar').value;
+    const total = Number(document.getElementById('totalBelanja').textContent.replace(/[^\d]/g, '') || 0);
+    
+    let bayar, kembalian;
+    
+    if (metodeBayar === 'QRIS') {
+        bayar = total;
+        kembalian = 0;
+    } else {
+        bayar = Number(document.getElementById('inputBayar').value || 0);
+        kembalian = Math.max(0, bayar - total);
+    }
+
+    // Validasi
+    if(Object.keys(cart).length === 0) {
+        Swal.fire("Keranjang Kosong", "Tambahkan produk terlebih dahulu", "warning");
+        return;
+    }
+    
+    if(metodeBayar === 'Tunai' && bayar < total) {
+        Swal.fire("Pembayaran Kurang", `Total: ${formatRupiah(total)}\nBayar: ${formatRupiah(bayar)}\nKurang: ${formatRupiah(total - bayar)}`, "error");
+        return;
+    }
+
+    const payload = {
+        cart: Object.values(cart),
+        total: total,
+        bayar: bayar,
+        kembalian: kembalian,
+        metode_bayar: metodeBayar
+    };
+
+    try{
+        const res = await fetch(`${apiUrl}?action=checkout`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if(data.success){
+            let successMessage = `
+                Nomor Faktur: <b>${data.nomor_faktur}</b><br>
+                Total Pembelian: <b>${formatRupiah(total)}</b><br>
+                Metode Bayar: <b>${metodeBayar}</b><br>
+            `;
+            
+            if (metodeBayar === 'Tunai') {
+                successMessage += `
+                    Bayar: <b>${formatRupiah(bayar)}</b><br>
+                    Kembalian: <b>${formatRupiah(kembalian)}</b><br>
+                `;
+            }
+            
+            successMessage += `<small>Stok produk berhasil ditambahkan</small>`;
+            
+            await Swal.fire({
+                title: "✅ Pembelian Berhasil!",
+                html: successMessage,
+                icon: "success",
+                confirmButtonText: "OK"
+            });
+            
+            // Reset cart dan refresh data produk
+            cart = {};
+            renderCart();
+            document.getElementById('inputBayar').value = 0;
+            document.getElementById('selectMetodeBayar').value = 'Tunai';
+            togglePaymentMethod();
+            recalcKembali();
+            
+            // Refresh data produk untuk melihat stok terbaru
+            fetchProducts();
+            
+        } else {
+            Swal.fire("Gagal", data.error || "Gagal menyimpan transaksi", "error");
+        }
+    } catch(err) {
+        Swal.fire("Kesalahan", "Tidak dapat terhubung ke server", "error");
+        console.error(err);
+    }
 });
 
-fetchProducts();
+// Initial load
+document.addEventListener('DOMContentLoaded', function() {
+    fetchProducts();
+    togglePaymentMethod(); // Set initial state
+});
 </script>
 </body>
 </html>
