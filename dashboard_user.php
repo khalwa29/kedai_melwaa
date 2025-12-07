@@ -4,90 +4,97 @@
 <meta charset="UTF-8">
 <title>Dashboard User 💕</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
 body {
     font-family: 'Poppins', sans-serif;
     background: linear-gradient(135deg, #fff1f8, #e2f7ff);
-    text-align: center;
-    padding: 60px 20px;
-    color: #333;
+    padding: 40px 20px;
+    margin: 0;
 }
 
-.container {
-    max-width: 600px;
+/* CARD UTAMA */
+.dashboard-card {
+    max-width: 750px;
     margin: auto;
-    background: #fff;
-    border-radius: 20px;
-    padding: 40px;
-    box-shadow: 0 8px 20px rgba(255,182,193,0.25);
+    background: #ffffffee;
+    padding: 50px 40px;
+    border-radius: 25px;
+    box-shadow: 0 10px 30px rgba(255,182,193,0.28);
+    text-align: center;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 1s ease;
 }
 
-.guest-notice {
-    background: #fff0f5;
-    border: 2px dashed #ff69b4;
-    border-radius: 10px;
-    padding: 10px;
-    margin-bottom: 20px;
-    color: #ff1493;
+/* ANIMASI MASUK */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 h1 {
+    font-size: 32px;
     color: #ff69b4;
-    font-size: 28px;
     margin-bottom: 15px;
+    font-weight: 600;
 }
 
-p {
-    font-size: 16px;
-    margin-bottom: 40px;
+.subtitle {
+    font-size: 17px;
+    color: #444;
+    margin-bottom: 35px;
 }
 
-button {
+/* WRAPPER BUTTONS */
+.btn-group {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 18px;
+}
+
+/* BUTTON STYLE */
+.btn {
     background: linear-gradient(90deg, #ff69b4, #77e3f0);
-    color: white;
+    padding: 13px 30px;
+    border-radius: 14px;
     border: none;
-    border-radius: 12px;
-    padding: 12px 25px;
-    margin: 10px;
-    cursor: pointer;
+    color: white;
     font-size: 16px;
     font-weight: 600;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(255,105,180,0.22);
+    transition: 0.3s;
 }
 
-button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 15px rgba(255,105,180,0.3);
+.btn:hover {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 10px 20px rgba(255,105,180,0.33);
 }
 
-.logout-btn {
-    background: linear-gradient(90deg, #ff4444, #ff8585);
-}
-
+/* FOOTER */
 footer {
-    margin-top: 30px;
-    font-size: 13px;
+    margin-top: 25px;
     color: #777;
+    font-size: 13px;
 }
 </style>
 </head>
+
 <body>
 
+<div class="dashboard-card">
 
+    <h1>Selamat Datang di Kedai Melwaa!</h1>
+    <p class="subtitle">Nikmatin harimu dengan santapan yang nikmat 💕</p>
+
+    <div class="btn-group">
+        <button class="btn" onclick="window.location.href='produk.php'">📋 Lihat Menu</button>
+        <button class="btn" onclick="window.location.href='beli.php'">🛍️ Pesan Sekarang</button>
+        <button class="btn" onclick="window.location.href='index.php'">🏠 Kembali ke Beranda</button>
     </div>
-    
-    <h1>☕ Selamat Datang di Kedai Melwaa!</h1>
-    
-    <button onclick="window.location.href='produk.php'">📋 Lihat Menu</button>
-    <button onclick="window.location.href='beli.php'">🛍️ Pesan Sekarang</button>
-    <button onclick="window.location.href='index.php'">🏠 Kembali ke Beranda</button>
-<<<<<<< HEAD
 
-    <footer>Kedai Melwaa — “Nikmatin Harimu dengan Secangkir Bahagia.” 💕</footer>
-=======
-       <footer>Kedai Melwaa — "Nikmatin Harimu dengan Secangkir Bahagia." 💕</footer>
->>>>>>> 4a5e0947be7db5afdb64477fe81736dacf39c30f
+    <footer>© Kedai Melwaa — “Nikmatin harimu dengan santapan yang nikmat” 💕</footer>
 </div>
 
 </body>

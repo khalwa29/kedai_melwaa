@@ -228,6 +228,8 @@ thead th{background:linear-gradient(90deg,#ffb6c1,#a3f3ff);color:#fff}
           <select id="selectMetodeBayar" style="width:150px">
             <option value="Tunai">Tunai</option>
             <option value="QRIS">QRIS</option>
+            <option value="Kartu Kredit">Kartu Kredit</option>
+            <option value="Kartu Debit">Kartu Debit</option>
           </select>
         </label>
         
@@ -474,6 +476,8 @@ document.getElementById('btnBayar').addEventListener('click', async function(){
                 confirmButtonText: "OK"
             });
             
+            window.open("struk.php?faktur=" + data.nomor_faktur, "_blank");
+
             // Reset cart dan refresh data produk
             cart = {};
             renderCart();

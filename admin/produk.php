@@ -1,7 +1,5 @@
 <?php
-<<<<<<< HEAD
 include '../koneksi.php';
-=======
 session_start();
 
 // Koneksi ke database
@@ -17,7 +15,7 @@ if ($conn->connect_error) {
 }
 
 $conn->set_charset("utf8");
->>>>>>> 4a5e0947be7db5afdb64477fe81736dacf39c30f
+
 
 // === TAMBAH PRODUK ===
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
@@ -376,13 +374,13 @@ a.hapus:hover {
   <tbody>
   <?php
   $no = 1;
-<<<<<<< HEAD
+
   $result = $koneksi->query("SELECT * FROM tb_produk ORDER BY id_produk DESC");
-  if ($result->num_rows > 0) {
-=======
+  if ($result->num_rows > 0) 
+
   $result = $conn->query("SELECT * FROM tb_produk ORDER BY id_produk DESC");
   if ($result && $result->num_rows > 0) {
->>>>>>> 4a5e0947be7db5afdb64477fe81736dacf39c30f
+
       while ($row = $result->fetch_assoc()) {
           echo "<tr>
                   <td>{$no}</td>
