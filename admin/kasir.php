@@ -36,7 +36,7 @@ if (isset($_GET['action'])) {
             $stmt->close();
 
             $stmt = $koneksi->prepare("
-                SELECT id_produk, kode_produk, nama_produk, kategori, harga_beli, stok, satuan
+                SELECT id_produk, kode_produk, nama_produk, kategori, harga_jual, stok, satuan
                 FROM tb_produk
                 WHERE nama_produk LIKE ? OR kode_produk LIKE ?
                 ORDER BY id_produk DESC LIMIT ? OFFSET ?
@@ -48,7 +48,7 @@ if (isset($_GET['action'])) {
             $totalRows = (int)$row['cnt'];
 
             $stmt = $koneksi->prepare("
-                SELECT id_produk, kode_produk, nama_produk, kategori, harga_beli, stok, satuan
+                SELECT id_produk, kode_produk, nama_produk, kategori, harga_jual, stok, satuan
                 FROM tb_produk ORDER BY id_produk DESC LIMIT ? OFFSET ?
             ");
             $stmt->bind_param('ii', $perPage, $offset);
@@ -110,16 +110,16 @@ if (isset($_GET['action'])) {
 
             // UPDATE STOK - TAMBAH stok produk (karena PEMBELIAN)
             $stmtUpdateStok = $koneksi->prepare("
-                UPDATE tb_produk SET stok = stok + ? WHERE id_produk = ?
+                UPDATE tb_produk SET stok = stok - ? WHERE id_produk = ?
             ");
 
             foreach ($cart as $item) {
                 $id_produk = $item['id_produk'];
                 $kode_produk = $item['id_produk'];
                 $nama_produk = $item['nama_produk'];
-                $harga_beli = floatval($item['harga_beli']);
+                $harga_jual = floatval($item['harga_jual']);
                 $qty = intval($item['qty']);
-                $total_harga = $harga_beli * $qty;
+                $total_harga = $harga_jual * $qty;
 
                 // Simpan detail transaksi
                 $stmtDetail->bind_param(
@@ -127,7 +127,7 @@ if (isset($_GET['action'])) {
                     $nomorFaktur,
                     $kode_produk,
                     $nama_produk,
-                    $harga_beli,
+                    $harga_jual,
                     $qty,
                     $total_harga
                 );
@@ -307,11 +307,11 @@ async function fetchProducts(page = 1){
                 <td>${no++}</td>
                 <td>${p.kode_produk}</td>
                 <td>${p.nama_produk}</td>
-                <td>${formatRupiah(p.harga_beli)}</td>
+                <td>${formatRupiah(p.harga_jual)}</td>
                 <td>${p.stok}</td>
                 <td>${p.satuan}</td>
                 <td>
-                    <button class='add-btn' onclick='addToCart(${p.id_produk},"${p.nama_produk}",${p.harga_beli})'>
+                    <button class='add-btn' onclick='addToCart(${p.id_produk},"${p.nama_produk}",${p.harga_jual})'>
                         ➕ Tambah
                     </button>
                 </td>
@@ -326,12 +326,12 @@ async function fetchProducts(page = 1){
     }
 }
 
-function addToCart(id, nama, harga_beli){
+function addToCart(id, nama, harga_jual){
     if(!cart[id]) {
         cart[id] = {
             id_produk: id,
             nama_produk: nama,
-            harga_beli: harga_beli,
+            harga_jual: harga_jual,
             qty: 1
         };
     } else {
@@ -351,14 +351,14 @@ function renderCart(){
     } else {
         for(const id in cart){
             const item = cart[id];
-            const subTotal = item.harga_beli * item.qty;
+            const subTotal = item.harga_jual * item.qty;
             total += subTotal;
             
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${i++}</td>
                 <td>${item.nama_produk}</td>
-                <td>${formatRupiah(item.harga_beli)}</td>
+                <td>${formatRupiah(item.harga_jual)}</td>
                 <td>
                     <input type='number' min='1' value='${item.qty}' 
                            onchange='updateQty(${id}, this.value)' 

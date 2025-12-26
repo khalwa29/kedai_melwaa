@@ -12,23 +12,20 @@ body {
     font-family: 'Poppins', sans-serif;
     margin: 0;
     padding: 0;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    min-height: 100vh;
     background: linear-gradient(135deg, #fff1f8, #e2f7ff);
 }
 
 .container {
     text-align: center;
     background: #fff;
-    padding: 50px 40px;
-    border-radius: 20px;
-    box-shadow: 0 8px 20px rgba(255,182,193,0.25);
-    max-width: 400px;
-    width: 90%;
-    position: relative;
+    padding: 60px 40px;
+    border-radius: 0;
+    box-shadow: none;
+    width: 100%;
+    min-height: 100vh;
 }
+
 
 h1 {
     font-size: 28px;
@@ -119,11 +116,18 @@ button:hover {
     <p>Selamat datang di Kedai Melwaa </p>
 
     <button id="loginBtn">Login 🍰</button>
-
     <footer style="margin-top:25px; font-size:13px; color:#777;">
-        
+    <iframe
+      src="https://lookerstudio.google.com/embed/reporting/0a2a65b8-2c58-49e9-bb92-1a1db72cd9e4/page/lqOjF" 
+      width="100%"
+      height="700"
+      style="border:0; margin-top:40px;"
+      allowfullscreen>
+    </iframe>
+
     </footer>
 </div>
+
 
 <!-- Popup pilihan -->
 <div class="popup" id="loginPopup">
