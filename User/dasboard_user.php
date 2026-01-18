@@ -5,7 +5,7 @@ if (!isset($_SESSION["email"])) {
     exit;
 }
 
-$koneksi = new mysqli("localhost","root","","db_kasir");
+$koneksi = new mysqli("sql303.infinityfree.com", "if0_40929663", "yowoUbquZwwxpn", "if0_40929663_db_kasir");
 if($koneksi->connect_error){ die("Koneksi gagal: ".$koneksi->connect_error); }
 
 $username = $_SESSION["username"];

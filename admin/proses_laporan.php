@@ -1,6 +1,5 @@
 <?php
-$koneksi = new mysqli("localhost", "root", "", "db_kasir");
-
+$koneksi = new mysqli("sql303.infinityfree.com", "if0_40929663", "yowoUbquZwwxpn", "if0_40929663_db_kasir");
 $tgl_awal  = $_POST['tgl_awal'] ?? '';
 $tgl_akhir = $_POST['tgl_akhir'] ?? '';
 

@@ -2,7 +2,7 @@
 require __DIR__ . '/dompdf/autoload.inc.php';
 use Dompdf\Dompdf;
 
-$koneksi = new mysqli("localhost", "root", "", "db_kasir");
+$koneksi = new mysqli("sqlXXX.infinityfree.com", "if0_40929663", "yowoUbquZwwxpn", "if0_40929663_db_kasir");
 
 $tgl_awal  = $_GET['tgl_awal'] ?? '';
 $tgl_akhir = $_GET['tgl_akhir'] ?? '';

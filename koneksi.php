@@ -1,9 +1,9 @@
 <?php
 // Pengaturan koneksi ke database
-$host = "localhost";
-$user = "root";        
-$password = "";        
-$database = "db_kasir";
+$host = "sql303.infinityfree.com";
+$user = "if0_40929663";        
+$password = "yowoUbquZwwxpn";        
+$database = "if0_40929663_db_kasir";
 
 // Membuat koneksi
 $koneksi = new mysqli($host, $user, $password, $database);

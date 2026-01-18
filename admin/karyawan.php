@@ -6,7 +6,7 @@ if (!isset($_SESSION["email"])) {
 }
 $username = $_SESSION["username"];
 
-$koneksi = new mysqli("localhost", "root", "", "db_kasir");
+$koneksi = new mysqli("sql303.infinityfree.com", "if0_40929663", "yowoUbquZwwxpn", "if0_40929663_db_kasir");
 
 // Tambah user
 if (isset($_POST['tambah'])) {

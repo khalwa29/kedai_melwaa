@@ -3,10 +3,10 @@ include '../koneksi.php';
 session_start();
 
 // Koneksi ke database
-$host = "localhost";
-$username = "root";
-$password = "";
-$database = "db_kasir";
+$host = "sql303.infinityfree.com";
+$username = "if0_40929663";
+$password = "yowoUbquZwwxpn";
+$database = "if0_40929663_db_kasir";
 
 $conn = new mysqli($host, $username, $password, $database);
 

@@ -7,7 +7,7 @@ if (!isset($_SESSION["email"])) {
 $username = $_SESSION["username"] ?? 'Kasir';
 
 // --- KONEKSI DATABASE ---
-$koneksi = new mysqli("localhost", "root", "", "db_kasir");
+$koneksi = new mysqli("sql303.infinityfree.com", "if0_40929663", "yowoUbquZwwxpn", "if0_40929663_db_kasir");
 if ($koneksi->connect_error) {
     http_response_code(500);
     echo json_encode(["error" => "Gagal terhubung ke database"]);
