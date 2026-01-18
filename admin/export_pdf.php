@@ -1,12 +1,42 @@
 <?php
-require __DIR__ . '/dompdf/autoload.inc.php';
-use Dompdf\Dompdf;
+ob_start();
 
-$koneksi = new mysqli("sqlXXX.infinityfree.com", "if0_40929663", "yowoUbquZwwxpn", "if0_40929663_db_kasir");
+/* =========================
+   LOAD FPDF (AMAN)
+========================= */
+$fpdf_path = $_SERVER['DOCUMENT_ROOT'] . '/fpdf186/fpdf.php';
+if (!file_exists($fpdf_path)) {
+    die("FPDF tidak ditemukan di htdocs/fpdf186/");
+}
+require_once $fpdf_path;
 
+/* =========================
+   KONEKSI DATABASE
+========================= */
+$koneksi = new mysqli(
+    "sql303.infinityfree.com",
+    "if0_40929663",
+    "yowoUbquZwwxpn",
+    "if0_40929663_db_kasir"
+);
+
+if ($koneksi->connect_error) {
+    die("Koneksi database gagal");
+}
+
+/* =========================
+   PARAMETER TANGGAL
+========================= */
 $tgl_awal  = $_GET['tgl_awal'] ?? '';
 $tgl_akhir = $_GET['tgl_akhir'] ?? '';
 
+if ($tgl_awal == '' || $tgl_akhir == '') {
+    die("Parameter tanggal tidak lengkap");
+}
+
+/* =========================
+   QUERY DATA
+========================= */
 $query = "
     SELECT 
         j.tanggal_beli,
@@ -15,53 +45,67 @@ $query = "
         r.qty,
         r.total_harga
     FROM tb_jual j
-    INNER JOIN rinci_jual r ON j.nomor_faktur = r.nomor_faktur
-    WHERE DATE(j.tanggal_beli) BETWEEN '$tgl_awal' AND '$tgl_akhir'
+    INNER JOIN rinci_jual r 
+        ON j.nomor_faktur = r.nomor_faktur
+    WHERE DATE(j.tanggal_beli) 
+        BETWEEN '$tgl_awal' AND '$tgl_akhir'
     ORDER BY j.tanggal_beli ASC
 ";
+
 $result = $koneksi->query($query);
+if (!$result) {
+    die("Query gagal: " . $koneksi->error);
+}
 
-$html = "
-<h3 style='text-align:center;'>Laporan Penjualan</h3>
-<p style='text-align:center;'>Periode: $tgl_awal s/d $tgl_akhir</p>
-<table border='1' cellspacing='0' cellpadding='6' width='100%'>
-<thead>
-<tr>
-<th>Tanggal Beli</th>
-<th>Nama Produk</th>
-<th>Harga Jual</th>
-<th>Qty</th>
-<th>Total Harga</th>
-</tr>
-</thead>
-<tbody>
-";
+/* =========================
+   BUAT PDF
+========================= */
+$pdf = new FPDF('P', 'mm', 'A4');
+$pdf->AddPage();
 
+/* Judul */
+$pdf->SetFont('Arial', 'B', 14);
+$pdf->Cell(0, 10, 'LAPORAN PENJUALAN', 0, 1, 'C');
+
+$pdf->SetFont('Arial', '', 10);
+$pdf->Cell(0, 7, "Periode: $tgl_awal s/d $tgl_akhir", 0, 1, 'C');
+$pdf->Ln(5);
+
+/* Header Tabel */
+$pdf->SetFont('Arial', 'B', 9);
+$pdf->Cell(30, 7, 'Tanggal', 1);
+$pdf->Cell(55, 7, 'Nama Produk', 1);
+$pdf->Cell(30, 7, 'Harga', 1);
+$pdf->Cell(15, 7, 'Qty', 1);
+$pdf->Cell(30, 7, 'Total', 1);
+$pdf->Ln();
+
+/* Isi Tabel */
+$pdf->SetFont('Arial', '', 9);
 $total = 0;
+
 while ($row = $result->fetch_assoc()) {
-    $html .= "
-    <tr>
-        <td>{$row['tanggal_beli']}</td>
-        <td>{$row['nama_produk']}</td>
-        <td>Rp " . number_format($row['harga_jual'], 0, ',', '.') . "</td>
-        <td>{$row['qty']}</td>
-        <td>Rp " . number_format($row['total_harga'], 0, ',', '.') . "</td>
-    </tr>";
+    $pdf->Cell(30, 7, $row['tanggal_beli'], 1);
+    $pdf->Cell(55, 7, $row['nama_produk'], 1);
+    $pdf->Cell(30, 7, 'Rp ' . number_format($row['harga_jual'], 0, ',', '.'), 1);
+    $pdf->Cell(15, 7, $row['qty'], 1);
+    $pdf->Cell(30, 7, 'Rp ' . number_format($row['total_harga'], 0, ',', '.'), 1);
+    $pdf->Ln();
+
     $total += $row['total_harga'];
 }
 
-$html .= "
-<tr style='font-weight:bold;background:#f4f4f4'>
-<td colspan='4' align='center'>TOTAL</td>
-<td>Rp " . number_format($total, 0, ',', '.') . "</td>
-</tr>
-</tbody>
-</table>
-";
+/* Total */
+$pdf->SetFont('Arial', 'B', 9);
+$pdf->Cell(130, 7, 'TOTAL', 1, 0, 'C');
+$pdf->Cell(30, 7, 'Rp ' . number_format($total, 0, ',', '.'), 1);
 
-$dompdf = new Dompdf();
-$dompdf->loadHtml($html);
-$dompdf->setPaper('A4', 'portrait');
-$dompdf->render();
-$dompdf->stream("laporan_penjualan_{$tgl_awal}_{$tgl_akhir}.pdf", ["Attachment" => true]);
-?>
+/* =========================
+   OUTPUT PDF
+========================= */
+ob_end_clean();
+$pdf->Output(
+    'D',
+    "laporan_penjualan_{$tgl_awal}_{$tgl_akhir}.pdf"
+);
+exit;
